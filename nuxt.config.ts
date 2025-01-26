@@ -5,10 +5,8 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   // Hier binden wir das nuxt-vuefire Modul ein
-  modules: [
-    // weitere Module ...
-    'nuxt-vuefire',
-  ],
+  modules: [// weitere Module ...
+  'nuxt-vuefire', "@nuxtjs/tailwindcss", 'nuxt-headlessui'],
 
   // Hier kommt die Firebase-Konfiguration rein
   vuefire: {
