@@ -1,76 +1,112 @@
 <template>
-  <div class="grid-container">
-    <div
-      v-for="(slot, index) in slots"
-      :key="index"
-      class="grid-item"
-      @click="handleClick(slot)"
-    >
-      <h3>{{ slot.title }}</h3>
-      <!-- Evtl. ein Symbol oder ein Vorschaubild anzeigen -->
-    </div>
+  <div class="pt-40">
+      <!-- Only render <GridCards> if we have itemsLoaded = true -->
+  <GridCards v-if="itemsLoaded" :items="slots" :onCardClick="handleClick">
+    <template #cardContent="{ item }">
+      <div class="h-60 w-96 relative">
+        <img
+          v-if="item.imageUrl"
+          :src="item.imageUrl"
+          alt="Slot image"
+          class="absolute inset-0 w-full h-full object-cover"
+        />
+        <div
+          v-else
+          class="absolute inset-0 flex items-center justify-center bg-gray-200"
+        >
+          <span class="text-gray-400">No Image</span>
+        </div>
+      </div>
+    </template>
+  </GridCards>
+
+  <!-- Optional: a loading spinner or placeholder until items are ready -->
+  <div v-else class="flex items-center justify-center min-h-screen">
+    <p>Loading...</p>
   </div>
+  </div>
+
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { doc, getDoc } from 'firebase/firestore'
-import { navigateTo } from '#app' // Nuxt-Composable
-// oder: import { useRouter } from '#app' und dann router.push('/...')
+import { ref, onMounted } from "vue";
+import { doc, getDoc } from "firebase/firestore";
+import { navigateTo } from "#app";
+import GridCards from "~/components/GridCards.vue";
+
+const db = useFirestore();
 
 interface HomeSlot {
-  title: string
-  type: string
-  dataId?: string
+  title: string;
+  type: string;
+  dataId?: string;
+  imageUrl?: string;
 }
 
-// Nuxt-Vuefire Composable
-const db = useFirestore()
-
-const slots = ref<HomeSlot[]>([])
+const slots = ref<HomeSlot[]>([]);
+const itemsLoaded = ref(false);
 
 onMounted(async () => {
-  const docRef = doc(db, 'config', 'homeSlots')
-  const snap = await getDoc(docRef)
-  if (snap.exists()) {
-    // Falls keine 'slots' vorhanden, nimm leeres Array
-    slots.value = snap.data().slots || []
+  // 1) Fetch Firestore data
+  const docRef = doc(db, "config", "homeSlots");
+  const snap = await getDoc(docRef);
+  if (!snap.exists()) {
+    itemsLoaded.value = true;
+    return;
   }
-})
 
+  // 2) We have the data
+  const data = snap.data();
+  slots.value = data.slots || [];
+
+  function isString(value: string | undefined): value is string {
+    return typeof value === "string";
+  }
+
+  // ...
+  const imageUrls = slots.value
+    .map((s: HomeSlot) => s.imageUrl)
+    .filter(isString); // now it's guaranteed to be string[]
+
+  await preloadImages(imageUrls);
+
+  // 4) Now that images are preloaded, show <GridCards>
+  itemsLoaded.value = true;
+});
+
+// Preload each image with a Promise
+function preloadImages(urls: string[]) {
+  const promises = urls.map((url) => {
+    return new Promise<void>((resolve, reject) => {
+      const img = new Image();
+      img.src = url;
+      img.onload = () => resolve();
+      img.onerror = () => resolve(); // or reject if you prefer
+    });
+  });
+  return Promise.all(promises);
+}
+
+// Klick-Aktionen
 function handleClick(slot: HomeSlot) {
   switch (slot.type) {
-    case 'quiz':
-      navigateTo(`/quiz/${slot.dataId}`)
-      break
-    case 'marken':
-      navigateTo('/marken')
-      break
-    case 'buchcover':
-      navigateTo(`/buchcover/${slot.dataId}`)
-      break
-    case 'feedback':
-      navigateTo('/feedback')
-      break
-    case 'newsletter':
-      navigateTo('/newsletter')
-      break
+    case "quiz":
+      navigateTo(`/quiz/${slot.dataId}`);
+      break;
+    case "marken":
+      navigateTo("/marken");
+      break;
+    case "buchcover":
+      navigateTo(`/buchcover/${slot.dataId}`);
+      break;
+    case "feedback":
+      navigateTo("/feedback");
+      break;
+    case "newsletter":
+      navigateTo("/newsletter");
+      break;
     default:
-      alert('Slot-Typ nicht definiert')
+      alert("Slot-Typ nicht definiert");
   }
 }
 </script>
-
-<style scoped>
-.grid-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 Spalten */
-  gap: 1rem;
-}
-.grid-item {
-  border: 1px solid #ccc;
-  padding: 1rem;
-  cursor: pointer;
-  text-align: center;
-}
-</style>
