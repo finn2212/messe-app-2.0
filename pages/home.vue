@@ -1,31 +1,30 @@
 <template>
   <div class="pt-40">
-      <!-- Only render <GridCards> if we have itemsLoaded = true -->
-  <GridCards v-if="itemsLoaded" :items="slots" :onCardClick="handleClick">
-    <template #cardContent="{ item }">
-      <div class="h-60 w-96 relative">
-        <img
-          v-if="item.imageUrl"
-          :src="item.imageUrl"
-          alt="Slot image"
-          class="absolute inset-0 w-full h-full object-cover"
-        />
-        <div
-          v-else
-          class="absolute inset-0 flex items-center justify-center bg-gray-200"
-        >
-          <span class="text-gray-400">No Image</span>
+    <!-- Only render <GridCards> if we have itemsLoaded = true -->
+    <GridCards v-if="itemsLoaded" :items="slots" :onCardClick="handleClick">
+      <template #cardContent="{ item }">
+        <div class="h-60 w-96 relative">
+          <img
+            v-if="item.imageUrl"
+            :src="item.imageUrl"
+            alt="Slot image"
+            class="absolute inset-0 w-full h-full object-cover"
+          />
+          <div v-else class="absolute inset-0 flex items-center justify-center">
+            <span class="text-gray-400">No Image</span>
+          </div>
         </div>
-      </div>
-    </template>
-  </GridCards>
+      </template>
+    </GridCards>
 
-  <!-- Optional: a loading spinner or placeholder until items are ready -->
-  <div v-else class="flex items-center justify-center min-h-screen">
-    <p>Loading...</p>
+    <!-- Optional: a loading spinner or placeholder until items are ready -->
+    <div
+      v-if="!itemsLoaded"
+      class="flex items-center justify-center min-h-screen"
+    >
+      <p>Loading...</p>
+    </div>
   </div>
-  </div>
-
 </template>
 
 <script setup lang="ts">
