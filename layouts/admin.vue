@@ -140,11 +140,10 @@
           Admin-Bereich
         </h2>
       </div>
-
-      <!-- Hier kommt dein Page-Content rein -->
+       <!-- Admin Page Content -->
       <main class="py-10">
         <div class="px-4 sm:px-6 lg:px-8">
-          <slot />
+          <NuxtPage /> <!-- Replaces <slot /> -->
         </div>
       </main>
     </div>

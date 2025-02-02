@@ -3,7 +3,7 @@
     <!-- Only render <GridCards> if we have itemsLoaded = true -->
     <GridCards v-if="itemsLoaded" :items="slots" :onCardClick="handleClick">
       <template #cardContent="{ item }">
-        <div class="h-60 w-96 relative">
+        <div class="h-60 w-96 relative ">
           <img
             v-if="item.imageUrl"
             :src="item.imageUrl"
