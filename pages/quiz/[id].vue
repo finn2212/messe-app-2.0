@@ -5,7 +5,7 @@
   </div>
 
   <!-- Once loaded, show the quiz and use <GridCards> for answers -->
-  <div v-else class="bg-gray-100 p-4 min-h-screen">
+  <div v-else class="p-4 min-h-screen">
     <h1 class="text-2xl font-bold text-center mb-4">{{ quiz?.title }}</h1>
 
     <!-- if there are still questions left -->
