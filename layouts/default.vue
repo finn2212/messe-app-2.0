@@ -1,6 +1,13 @@
 <template>
   <!-- Root container applying background to the entire page -->
   <div class="min-h-screen flex flex-col" :style="backgroundStyle">
+    <!-- Header with Home Icon Navigation -->
+    <header class="p-4 flex items-center justify-end">
+      <button v-if="!isHomePage" @click="navigateToHome" class="p-2">
+        <HomeIcon class="w-12 h-12 text-gray-700" />
+      </button>
+    </header>
+
     <main class="flex-grow">
       <NuxtPage />
     </main>
@@ -21,29 +28,18 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import { doc, getDoc } from "firebase/firestore";
 import { useFirestore } from "#imports";
+import { HomeIcon } from "@heroicons/vue/24/outline";
 
 // Reference Firestore
 const db = useFirestore();
+const router = useRouter();
+const route = useRoute();
 
 // Reactive state for loaded settings
 const appSettings = ref<any>(null);
-
-// // Compute background style if a backgroundImageUrl exists
-// const backgroundStyle = computed(() => {
-//   if (!appSettings.value?.backgroundImageUrl) {
-//     return {}; // No background image
-//   }
-//   return {
-//     backgroundImage: `url(${appSettings.value.backgroundImageUrl})`,
-//     backgroundSize: "cover",
-//     backgroundPosition: "center",
-//     backgroundRepeat: "no-repeat",
-//     width: "100%",
-//     minHeight: "100vh",
-//   };
-// });
 
 const backgroundStyle = computed(() => ({
   backgroundImage:
@@ -69,9 +65,12 @@ onMounted(async () => {
     appSettings.value = {};
   }
 });
-watch(backgroundStyle, (newVal) => {
-  console.log("backgroundStyle changed:", newVal);
-});
+
+const isHomePage = computed(() => route.path === "/home");
+
+function navigateToHome() {
+  router.push("/home");
+}
 </script>
 
 <style scoped>

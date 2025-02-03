@@ -3,13 +3,20 @@
     <!-- Only render <GridCards> if we have itemsLoaded = true -->
     <GridCards v-if="itemsLoaded" :items="slots" :onCardClick="handleClick">
       <template #cardContent="{ item }">
-        <div class="h-60 w-96 relative ">
-          <img
-            v-if="item.imageUrl"
-            :src="item.imageUrl"
-            alt="Slot image"
-            class="absolute inset-0 w-full h-full object-cover"
-          />
+        <div class="h-60 w-96 relative">
+          <div v-if="item.imageUrl">
+            <img
+              :src="item.imageUrl"
+              alt="Slot image"
+              class="absolute inset-0 w-full h-full object-cover"
+            />
+            <div
+              class="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white bg-opacity-80 p-2 rounded-md text-center text-black font-semibold"
+            >
+              {{ item.displayName }}
+            </div>
+          </div>
+
           <div v-else class="absolute inset-0 flex items-center justify-center">
             <span class="text-gray-400">No Image</span>
           </div>
@@ -18,11 +25,8 @@
     </GridCards>
 
     <!-- Optional: a loading spinner or placeholder until items are ready -->
-    <div
-      v-if="!itemsLoaded"
-      class="flex items-center justify-center min-h-screen"
-    >
-      <p>Loading...</p>
+    <div v-if="!itemsLoaded" class="flex justify-center min-h-screen">
+      <Spinner></Spinner>
     </div>
   </div>
 </template>
@@ -32,6 +36,7 @@ import { ref, onMounted } from "vue";
 import { doc, getDoc } from "firebase/firestore";
 import { navigateTo } from "#app";
 import GridCards from "~/components/GridCards.vue";
+import Spinner from "~/components/Spinner.vue";
 
 const db = useFirestore();
 

@@ -1,11 +1,11 @@
 <template>
   <!-- Loading spinner or similar while not loaded -->
-  <div v-if="!quizLoaded" class="flex items-center justify-center min-h-screen">
-    <p>Loading quiz...</p>
+  <div v-if="!quizLoaded" class="flex items-center justify-center">
+    <Spinner></Spinner>
   </div>
 
   <!-- Once loaded, show the quiz and use <GridCards> for answers -->
-  <div v-else class="p-4 min-h-screen">
+  <div v-else class="p-4">
     <h1 class="text-2xl font-bold text-center mb-4">{{ quiz?.title }}</h1>
 
     <!-- if there are still questions left -->
@@ -85,6 +85,7 @@ import { ref, onMounted } from "vue";
 import { useRoute, navigateTo } from "#app";
 import { doc, getDoc } from "firebase/firestore";
 import GridCards from "~/components/GridCards.vue";
+import Spinner from "~/components/Spinner.vue";
 
 const db = useFirestore();
 const route = useRoute();
