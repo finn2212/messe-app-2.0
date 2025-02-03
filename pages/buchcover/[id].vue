@@ -1,62 +1,92 @@
 <template>
   <!-- Loading state -->
-  <div v-if="!coversLoaded || isLoading" class="flex items-center justify-center min-h-screen">
-   <Spinner></Spinner>
+  <div
+    v-if="!coversLoaded || isLoading || !imagesLoaded"
+    class="flex items-center justify-center min-h-screen"
+  >
+    <Spinner></Spinner>
   </div>
 
   <!-- Main selection container -->
   <div v-else class="p-4 flex flex-col items-center justify-center">
-    <h1 class="text-2xl font-bold text-center mb-6">
-      Wähle dein bevorzugtes Buchcover
-    </h1>
+    <Transition name="fade" appear>
+      <h1
+        v-if="currentCoverIndex < coverDocs.length"
+        class="text-2xl font-bold text-center mb-6"
+      >
+        Wähle dein bevorzugtes Buchcover
+      </h1>
+    </Transition>
 
     <div v-if="currentCoverIndex < coverDocs.length">
-      <h2 class="text-xl font-semibold mb-4 text-center">
-        {{ coverDocs[currentCoverIndex].data.title }}
-      </h2>
+      <Transition name="fade" appear>
+        <h2 class="text-xl font-semibold mb-4 text-center">
+          {{ coverDocs[currentCoverIndex].data.title }}
+        </h2>
+      </Transition>
 
       <!-- Cover selection grid -->
       <div class="flex flex-row justify-center gap-8">
-        <div
-          v-for="(cover, index) in coverOptions"
-          :key="index"
-          @click="selectCover(index)"
-          class="cursor-pointer transform transition-all duration-300 bg-transparent hover:scale-105 rounded-lg"
-          :class="getCoverClasses(index)"
-        >
-          <img
-            :src="cover"
-            class="w-64 h-96 object-cover rounded-lg shadow-lg bg-transparent mix-blend-multiply"
-          />
-        </div>
+        <Transition name="fade" appear>
+          <div
+            @click="selectCover(0)"
+            class="cursor-pointer transform transition-all duration-300 bg-transparent hover:scale-105 rounded-lg"
+            :class="getCoverClasses(0)"
+          >
+            <img
+              :src="coverOptions[0]"
+              class="w-64 h-96 object-cover rounded-lg shadow-lg bg-transparent mix-blend-multiply"
+            />
+          </div>
+        </Transition>
+
+        <Transition name="fade-delay" appear>
+          <div
+            @click="selectCover(1)"
+            class="cursor-pointer transform transition-all duration-300 bg-transparent hover:scale-105 rounded-lg"
+            :class="getCoverClasses(1)"
+          >
+            <img
+              :src="coverOptions[1]"
+              class="w-64 h-96 object-cover rounded-lg shadow-lg bg-transparent mix-blend-multiply"
+            />
+          </div>
+        </Transition>
       </div>
 
       <!-- Feedback + next button -->
-      <div v-if="selectedCover !== null" class="mt-4 text-center">
-        <button
-          @click="nextCover"
-          class="mt-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500"
-        >
-          Weiter
-        </button>
-      </div>
+      <Transition name="fade" appear>
+        <div v-if="selectedCover !== null" class="mt-4 text-center">
+          <button
+            @click="nextCover"
+            class="mt-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500"
+          >
+            Weiter
+          </button>
+        </div>
+      </Transition>
     </div>
 
     <!-- Selection finished -->
-    <div v-else class="text-center mt-8">
-      <h2 class="text-xl font-semibold mb-4">Danke für deine Auswahl!</h2>
-      <button
-        @click="navigateToNewsletter"
-        class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500"
+    <Transition name="fade">
+      <div
+        v-if="currentCoverIndex >= coverDocs.length"
+        class="text-center mt-8"
       >
-        Weiter zum Newsletter
-      </button>
-    </div>
+        <h2 class="text-xl font-semibold mb-4">Danke für deine Auswahl!</h2>
+        <button
+          @click="navigateToNewsletter"
+          class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500"
+        >
+          Weiter zum Newsletter
+        </button>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useFirestore } from "#imports";
 import { collection, getDocs } from "firebase/firestore";
 import { useRouter } from "vue-router";
@@ -70,6 +100,7 @@ const coversLoaded = ref(false);
 const currentCoverIndex = ref(0);
 const selectedCover = ref<number | null>(null);
 const isLoading = ref(false);
+const imagesLoaded = ref(false);
 
 // Load covers on mount
 onMounted(async () => {
@@ -86,6 +117,31 @@ async function loadCovers() {
     });
   });
   coversLoaded.value = true;
+  preloadImages(); // Start preloading first images
+}
+
+// Preload images
+async function preloadImages() {
+  imagesLoaded.value = false; // Reset state
+  const covers = coverOptions.value;
+  let loadedCount = 0;
+
+  covers.forEach((cover) => {
+    const img = new Image();
+    img.src = cover;
+    img.onload = () => {
+      loadedCount++;
+      if (loadedCount === covers.length) {
+        imagesLoaded.value = true; // Mark as fully loaded
+      }
+    };
+    img.onerror = () => {
+      loadedCount++;
+      if (loadedCount === covers.length) {
+        imagesLoaded.value = true; // Even if some images fail, continue
+      }
+    };
+  });
 }
 
 const coverOptions = computed(() => {
@@ -115,12 +171,17 @@ async function nextCover() {
   isLoading.value = true;
   selectedCover.value = null;
   currentCoverIndex.value++;
-  await new Promise((resolve) => setTimeout(resolve, 500)); // Simulating loading delay
-  isLoading.value = false;
 
+  // If all covers are done, navigate to the newsletter instead of trying to load images
   if (currentCoverIndex.value >= coverDocs.value.length) {
     navigateToNewsletter();
+    return;
   }
+
+  await new Promise((resolve) => setTimeout(resolve, 500)); // Simulating loading delay
+  await preloadImages(); // Preload next images only if there are still covers left
+
+  isLoading.value = false;
 }
 
 function navigateToNewsletter() {
@@ -129,7 +190,26 @@ function navigateToNewsletter() {
 </script>
 
 <style scoped>
-.border-4 {
-  border-width: 4px;
+/* General Fade Animation */
+.fade-enter-active {
+  transition: opacity 0.8s ease-in-out;
+}
+.fade-enter-from {
+  opacity: 0;
+}
+.fade-enter-to {
+  opacity: 1;
+}
+
+/* Delayed Fade Animation */
+.fade-delay-enter-active {
+  transition: opacity 0.8s ease-in-out;
+  transition-delay: 0.4s; /* Delay for second image */
+}
+.fade-delay-enter-from {
+  opacity: 0;
+}
+.fade-delay-enter-to {
+  opacity: 1;
 }
 </style>

@@ -1,9 +1,11 @@
 <template>
   <div class="pt-20">
     <div v-if="itemsLoaded">
-      <h1 class="text-2xl font-bold text-center mb-12">
-        Mach mit und sag uns Deine Meinung.
-      </h1>
+      <Transition name="fade">
+        <h1 class="text-2xl font-bold text-center mb-12">
+          Mach mit und sag uns Deine Meinung.
+        </h1>
+      </Transition>
       <!-- Only render <GridCards> if we have itemsLoaded = true -->
       <GridCards :items="slots" :onCardClick="handleClick">
         <template #cardContent="{ item }">
@@ -122,3 +124,13 @@ function handleClick(slot: HomeSlot) {
   }
 }
 </script>
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 1s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
