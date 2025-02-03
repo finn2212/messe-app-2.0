@@ -57,7 +57,10 @@
         >
           Richtig!
         </p>
-        <p v-else class="text-red-600 font-semibold">Falsch!</p>
+        <p v-else class="text-red-600 font-semibold">
+          Schade, die Antwort ist nicht korrekt! Nicht aufgeben -
+          Übung macht den Meister.
+        </p>
         <button
           @click="nextQuestion"
           class="mt-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500"

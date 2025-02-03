@@ -1,28 +1,36 @@
 <template>
-  <div class="pt-40">
-    <!-- Only render <GridCards> if we have itemsLoaded = true -->
-    <GridCards v-if="itemsLoaded" :items="slots" :onCardClick="handleClick">
-      <template #cardContent="{ item }">
-        <div class="h-60 w-96 relative">
-          <div v-if="item.imageUrl">
-            <img
-              :src="item.imageUrl"
-              alt="Slot image"
-              class="absolute inset-0 w-full h-full object-cover"
-            />
+  <div class="pt-20">
+    <div v-if="itemsLoaded">
+      <h1 class="text-2xl font-bold text-center mb-12">
+        Mach mit und sag uns Deine Meinung.
+      </h1>
+      <!-- Only render <GridCards> if we have itemsLoaded = true -->
+      <GridCards :items="slots" :onCardClick="handleClick">
+        <template #cardContent="{ item }">
+          <div class="h-60 w-96 relative">
+            <div v-if="item.imageUrl">
+              <img
+                :src="item.imageUrl"
+                alt="Slot image"
+                class="absolute inset-0 w-full h-full object-cover"
+              />
+              <div
+                class="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white bg-opacity-80 p-2 rounded-md text-center text-black font-semibold"
+              >
+                {{ item.displayName }}
+              </div>
+            </div>
+
             <div
-              class="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white bg-opacity-80 p-2 rounded-md text-center text-black font-semibold"
+              v-else
+              class="absolute inset-0 flex items-center justify-center"
             >
-              {{ item.displayName }}
+              <span class="text-gray-400">No Image</span>
             </div>
           </div>
-
-          <div v-else class="absolute inset-0 flex items-center justify-center">
-            <span class="text-gray-400">No Image</span>
-          </div>
-        </div>
-      </template>
-    </GridCards>
+        </template>
+      </GridCards>
+    </div>
 
     <!-- Optional: a loading spinner or placeholder until items are ready -->
     <div v-if="!itemsLoaded" class="flex justify-center min-h-screen">
