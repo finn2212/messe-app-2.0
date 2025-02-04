@@ -103,8 +103,9 @@
 import { ref, onMounted, nextTick } from "vue";
 import { useFirestore } from "#imports";
 import { collection, getDocs } from "firebase/firestore";
-import Chart from "chart.js/auto";
+
 import Spinner from "~/components/Spinner.vue";
+import { Chart } from "chart.js/auto";
 
 // **Define Admin Layout**
 definePageMeta({ layout: "admin" });

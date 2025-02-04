@@ -74,10 +74,10 @@
     <div v-else class="text-center mt-8">
       <h2 class="text-xl font-semibold mb-4">Quiz beendet!</h2>
       <button
-        @click="navigateTo('/home')"
+        @click="navigateTo('/Newsletter')"
         class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500"
       >
-        Zurück zum Hauptscreen
+       Weiter
       </button>
     </div>
   </div>
@@ -89,6 +89,7 @@ import { useRoute, navigateTo } from "#app";
 import { doc, getDoc } from "firebase/firestore";
 import GridCards from "~/components/GridCards.vue";
 import Spinner from "~/components/Spinner.vue";
+const router = useRouter();
 
 const db = useFirestore();
 const route = useRoute();

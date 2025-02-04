@@ -176,7 +176,11 @@ async function loadBrandData() {
 // **Preload brand images**
 async function preloadImages() {
   imagesLoaded.value = false;
-  const images = brandOptions.value.map((item) => item.brandImageUrl).filter((url) => url);
+ 
+  // Ensure brandImageUrl is always a string by filtering out undefined values
+  const images = brandOptions.value
+    .map((item) => item.brandImageUrl || "") // Replace undefined with an empty string
+    .filter((url) => url !== ""); // Remove empty strings
 
   if (images.length === 0) {
     imagesLoaded.value = true;

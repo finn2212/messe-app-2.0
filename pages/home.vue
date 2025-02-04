@@ -7,7 +7,10 @@
         </h1>
       </Transition>
       <!-- Only render <GridCards> if we have itemsLoaded = true -->
-      <GridCards :items="slots" :onCardClick="handleClick">
+      <GridCards
+        :items="slots"
+        :onCardClick="(item) => handleClick(item as HomeSlot)"
+      >
         <template #cardContent="{ item }">
           <div class="h-60 w-96 relative">
             <div v-if="item.imageUrl">
