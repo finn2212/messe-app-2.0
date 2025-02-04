@@ -88,7 +88,12 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useFirestore } from "#imports";
-import { collection, getDocs } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { useRouter } from "vue-router";
 import Spinner from "~/components/Spinner.vue";
 
@@ -117,28 +122,22 @@ async function loadCovers() {
     });
   });
   coversLoaded.value = true;
-  preloadImages(); // Start preloading first images
+  preloadImages();
 }
 
 // Preload images
 async function preloadImages() {
-  imagesLoaded.value = false; // Reset state
+  imagesLoaded.value = false;
   const covers = coverOptions.value;
   let loadedCount = 0;
 
   covers.forEach((cover) => {
     const img = new Image();
     img.src = cover;
-    img.onload = () => {
+    img.onload = img.onerror = () => {
       loadedCount++;
       if (loadedCount === covers.length) {
-        imagesLoaded.value = true; // Mark as fully loaded
-      }
-    };
-    img.onerror = () => {
-      loadedCount++;
-      if (loadedCount === covers.length) {
-        imagesLoaded.value = true; // Even if some images fail, continue
+        imagesLoaded.value = true;
       }
     };
   });
@@ -152,9 +151,10 @@ const coverOptions = computed(() => {
   ];
 });
 
-function selectCover(index: number) {
+async function selectCover(index: number) {
   if (selectedCover.value === null) {
     selectedCover.value = index;
+    await trackCoverSelection(index);
   }
 }
 
@@ -172,20 +172,37 @@ async function nextCover() {
   selectedCover.value = null;
   currentCoverIndex.value++;
 
-  // If all covers are done, navigate to the newsletter instead of trying to load images
   if (currentCoverIndex.value >= coverDocs.value.length) {
     navigateToNewsletter();
     return;
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 500)); // Simulating loading delay
-  await preloadImages(); // Preload next images only if there are still covers left
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  await preloadImages();
 
   isLoading.value = false;
 }
 
 function navigateToNewsletter() {
   router.push("/newsletter");
+}
+
+// **Track Cover Selection in Firestore**
+async function trackCoverSelection(selectedIndex: number) {
+  if (currentCoverIndex.value >= coverDocs.value.length) return;
+
+  const coverId = coverDocs.value[currentCoverIndex.value].id;
+  const selectedCoverUrl = coverOptions.value[selectedIndex];
+
+  try {
+    await addDoc(collection(db, "coverSelectionsTracking"), {
+      coverId: coverId,
+      selectedCover: selectedCoverUrl,
+      timestamp: serverTimestamp(),
+    });
+  } catch (err) {
+    console.error("Fehler beim Speichern der Cover-Auswahl:", err);
+  }
 }
 </script>
 

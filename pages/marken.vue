@@ -1,16 +1,16 @@
 <template>
-  <!-- Spinner while appSettings are loading -->
+  <!-- Loading Spinner -->
   <div v-if="!appSettingsLoaded || !imagesLoaded" class="flex items-center justify-center min-h-screen">
-    <Spinner></Spinner>
+    <Spinner />
   </div>
 
-  <!-- Main brand attribute container -->
+  <!-- Main Brand Attribute Selection -->
   <div v-else class="p-4 flex flex-col items-center justify-center">
     <h1 v-if="!selectedAttribute && !selectedBrand" class="text-2xl font-bold text-center mb-6">
       Wähle eine Marke aus
     </h1>
 
-    <!-- Brand Selection Grid with Fade Effect -->
+    <!-- Brand Selection Grid -->
     <TransitionGroup v-if="!selectedBrand" tag="div" class="w-full" name="fade">
       <GridCards
         :items="brandOptions"
@@ -32,7 +32,7 @@
       </GridCards>
     </TransitionGroup>
 
-    <!-- Attributes Selection with Fade Effect -->
+    <!-- Attribute Selection -->
     <Transition name="fade">
       <div v-if="selectedBrand && !selectedAttribute" class="flex flex-col items-center w-full max-w-4xl">
         <h1 class="text-2xl font-semibold mb-4 text-center">
@@ -53,54 +53,68 @@
       </div>
     </Transition>
 
-    <!-- Final Step: Selection Result with Fade Effect -->
+    <!-- Final Step: Display Statistics -->
     <Transition name="fade">
-      <div v-if="selectedAttribute" class="mt-6 w-full max-w-5xl text-center">
-        <div class="text-lg text-gray-800 items-center text-center sm:text-left">
-          <h3 class="text-5xl font-bold text-center mb-20">Super, Deine Meinung zählt!</h3>
+  <div v-if="selectedAttribute">
+    <!-- Spinner while stats are loading -->
+    <div v-if="!statsLoaded" class="flex items-center justify-center min-h-screen">
+      <Spinner />
+    </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-[10vw] p-4">
-            <div class="blob-shape">100% {{ selectedAttribute.title }}</div>
+    <!-- Final Step: Display Statistics -->
+    <div v-else class="mt-6 w-full max-w-5xl text-center">
+      <div class="text-lg text-gray-800 items-center text-center sm:text-left">
+        <h3 class="text-5xl font-bold text-center mb-20">Super, Deine Meinung zählt!</h3>
 
-            <div class="p-6">
-              <span class="text-5xl">100% </span>
-              <p class="mt-2">haben sich ebenso für dieses Attribut entschieden.</p>
-            </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-[10vw] p-4">
+          <div class="blob-shape">{{ selectedAttributePercentage.toFixed(0) }}% {{ selectedAttribute.title }}</div>
+
+          <div class="p-6">
+            <span class="text-5xl">{{ selectedAttributePercentage.toFixed(0) }}%</span>
+            <p class="mt-2">haben sich ebenso für dieses Attribut entschieden.</p>
           </div>
         </div>
-
-        <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2 w-full text-sm text-gray-600">
-          <span v-for="attr in remainingAttributes" :key="attr.title" class="px-3 py-1 bg-gray-100 rounded-full">
-            0% {{ attr.title }}
-          </span>
-        </div>
-
-        <div class="mt-4 text-center">
-          <button
-            @click="navigateTo('/newsletter')"
-            class="mt-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500"
-          >
-            Weiter
-          </button>
-        </div>
       </div>
-    </Transition>
+
+      <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2 w-full text-sm text-gray-600">
+        <span v-for="attr in remainingAttributesPercentages" :key="attr.title" class="px-3 py-1 bg-gray-100 rounded-full">
+          {{ attr.percentage.toFixed(0) }}% {{ attr.title }}
+        </span>
+      </div>
+
+      <div class="mt-4 text-center">
+        <button @click="navigateTo('/newsletter')" class="mt-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500">
+          Weiter
+        </button>
+      </div>
+    </div>
+  </div>
+</Transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watchEffect } from "vue";
 import { useFirestore } from "#imports";
-import { collection, getDocs, type DocumentData } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import GridCards from "~/components/GridCards.vue";
 import Spinner from "~/components/Spinner.vue";
+import { calculateSelectionStats } from "~/utils/selectionStatsHelper";
 
 const db = useFirestore();
 const appSettingsLoaded = ref(false);
 const imagesLoaded = ref(false);
+const statsLoaded = ref(false); // 🆕 Track if stats are loaded
 const selectedBrand = ref<string | null>(null);
 const selectedBrandAttributes = ref<Array<{ title: string }>>([]);
 const selectedAttribute = ref<{ title: string } | null>(null);
+const selectionStats = ref<{ [key: string]: number }>({});
+const totalSelections = ref<number>(0);
 const brandDocs = ref<Array<{ id: string; data: { brand: string; brandImageUrl?: string; attributes: Array<{ title: string }> } }>>([]);
 
 onMounted(async () => {
@@ -108,12 +122,43 @@ onMounted(async () => {
   preloadImages();
 });
 
-// Load brands from Firestore
+// **Load stats only when brand is selected**
+watchEffect(async () => {
+  if (selectedBrand.value) {
+    statsLoaded.value = false; // 🆕 Set loading state before fetching
+    await updateSelectionStats();
+    statsLoaded.value = true; // 🆕 Mark as loaded
+  }
+});
+
+// **Fetch and update selection statistics**
+async function updateSelectionStats() {
+  if (!selectedBrand.value) return;
+  const stats = await calculateSelectionStats(db, selectedBrand.value);
+  selectionStats.value = stats.totalSelections;
+  totalSelections.value = stats.totalCount;
+}
+
+// **Compute percentage for selected attribute**
+const selectedAttributePercentage = computed(() => {
+  if (!selectedAttribute.value || totalSelections.value === 0) return 0;
+  return ((selectionStats.value[selectedAttribute.value.title] || 0) / totalSelections.value) * 100;
+});
+
+// **Compute percentages for all attributes (even with 0%)**
+const remainingAttributesPercentages = computed(() => {
+  return selectedBrandAttributes.value.map((attr) => ({
+    title: attr.title,
+    percentage: ((selectionStats.value[attr.title] || 0) / totalSelections.value) * 100,
+  }));
+});
+
+// **Load brands from Firestore**
 async function loadBrandData() {
   try {
     const snap = await getDocs(collection(db, "brandAttributes"));
     snap.forEach((docSnap) => {
-      const data = docSnap.data() as DocumentData;
+      const data = docSnap.data();
       if (data.brand && data.attributes) {
         brandDocs.value.push({
           id: docSnap.id,
@@ -128,7 +173,7 @@ async function loadBrandData() {
   }
 }
 
-// Preload brand images
+// **Preload brand images**
 async function preloadImages() {
   imagesLoaded.value = false;
   const images = brandOptions.value.map((item) => item.brandImageUrl).filter((url) => url);
@@ -142,13 +187,7 @@ async function preloadImages() {
   images.forEach((src) => {
     const img = new Image();
     img.src = src;
-    img.onload = () => {
-      loadedCount++;
-      if (loadedCount === images.length) {
-        imagesLoaded.value = true;
-      }
-    };
-    img.onerror = () => {
+    img.onload = img.onerror = () => {
       loadedCount++;
       if (loadedCount === images.length) {
         imagesLoaded.value = true;
@@ -159,42 +198,49 @@ async function preloadImages() {
 
 const brandOptions = computed(() => brandDocs.value.map((doc) => doc.data));
 
-const remainingAttributes = computed(() => {
-  return selectedBrandAttributes.value.filter((attr) => attr.title !== selectedAttribute.value?.title);
-});
-
 function selectBrand(brand: any) {
   selectedBrand.value = brand.brand;
   selectedBrandAttributes.value = brand.attributes;
-  selectedAttribute.value = null; // Reset selection
+  selectedAttribute.value = null;
 }
 
-function selectAttribute(attribute: { title: string }) {
+async function selectAttribute(attribute: { title: string }) {
   selectedAttribute.value = attribute;
+  statsLoaded.value = false; // 🆕 Mark stats as loading
+  await trackSelection();
+  await updateSelectionStats();
+  statsLoaded.value = true; // 🆕 Mark stats as loaded
 }
 
 function navigateTo(route: string) {
   window.location.href = route;
 }
+
+// **Track selection in Firestore**
+async function trackSelection() {
+  if (!selectedBrand.value || !selectedAttribute.value) return;
+
+  try {
+    await addDoc(collection(db, "brandSelections"), {
+      brand: selectedBrand.value,
+      attribute: selectedAttribute.value.title,
+      timestamp: serverTimestamp(),
+    });
+  } catch (err) {
+    console.error("Fehler beim Speichern der Auswahl:", err);
+  }
+}
 </script>
+
 <style scoped>
 .blob-shape {
-  /* Size of the blob */
   width: 400px;
   height: 250px;
-
-  /* Background color similar to the image */
   background-color: #ffd600;
-
-  /* Large border-radius values to get a wavy/organic blob */
   border-radius: 40% 60% 40% 60% / 60% 40% 60% 40%;
-
-  /* Center the text inside */
   display: flex;
   align-items: center;
   justify-content: center;
-
-  /* Optional text styling */
   font-size: 1.2rem;
   font-weight: bold;
   color: #fff;

@@ -164,16 +164,18 @@ import { NuxtLink } from '#components'
 // Deine Admin-Menü-Einträge
 // Hier ersetzen wir die "Dashboard", "Team", etc. aus dem Tailwind-Beispiel
 // mit deinen Admin-Routen:
-import { Cog6ToothIcon, FolderIcon, DocumentDuplicateIcon, AdjustmentsHorizontalIcon, BookOpenIcon   } from '@heroicons/vue/24/outline'
+import { Cog6ToothIcon, FolderIcon, AdjustmentsHorizontalIcon, BookOpenIcon , CalendarIcon , ChartBarIcon, QuestionMarkCircleIcon } from '@heroicons/vue/24/outline'
 
 // Du kannst gerne unterschiedliche Heroicons importieren, z.B. Cog6ToothIcon
 // oder TrashIcon etc. - Hier nur als Beispiel
 const navigation = [
   { name: 'Slots', href: '/admin/slots', icon: FolderIcon },
-  { name: 'Quizzes', href: '/admin/quizzes', icon: DocumentDuplicateIcon },
+  { name: 'Quizzes', href: '/admin/quizzes', icon: QuestionMarkCircleIcon },
   { name: 'Brand Attributes', href: '/admin/brand-attributes', icon: Cog6ToothIcon },
   { name: 'Cover Selections', href: '/admin/cover-selections', icon: BookOpenIcon },
-  { name: 'App Einstellungen', href: '/admin/app-settings', icon: AdjustmentsHorizontalIcon },
+  { name: 'App Einstellungen', href: '/admin/app-settings', icon: AdjustmentsHorizontalIcon  },
+  { name: 'Messe Termine', href: '/admin/messen', icon: CalendarIcon },
+  { name: 'Analysien', href: '/admin/stats', icon: ChartBarIcon  },
 ]
 
 const sidebarOpen = ref(false)
