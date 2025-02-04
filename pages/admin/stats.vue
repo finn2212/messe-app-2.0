@@ -96,16 +96,53 @@
         </div>
       </div>
     </div>
+    <div>
+      <!-- Quizzes Tabs -->
+      <div class="mt-8 border-b border-gray-300">
+        <nav class="flex space-x-4">
+          <button
+            v-for="quiz in quizzes"
+            :key="quiz.id"
+            @click="setActiveQuiz(quiz.id)"
+            :class="[
+              'py-2 px-4 text-sm font-medium',
+              activeQuiz === quiz.id
+                ? 'text-indigo-600 border-b-2 border-indigo-600'
+                : 'text-gray-600 hover:text-gray-900',
+            ]"
+          >
+            {{ quiz.title }}
+          </button>
+          <button
+            @click="setActiveQuiz(null)"
+            :class="[
+              'py-2 px-4 text-sm font-medium',
+              activeQuiz === null
+                ? 'text-indigo-600 border-b-2 border-indigo-600'
+                : 'text-gray-600 hover:text-gray-900',
+            ]"
+          >
+          </button>
+        </nav>
+      </div>
+
+      <!-- Some other content... -->
+      <QuizStatistics v-if="activeQuiz" :quizId="activeQuiz" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from "vue";
 import { useFirestore } from "#imports";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, getDoc, doc } from "firebase/firestore";
 
 import Spinner from "~/components/Spinner.vue";
 import { Chart } from "chart.js/auto";
+import QuizStatistics from "~/components/QuizStatistics.vue";
+
+const quizzes = ref<Array<{ id: string; title: string }>>([]);
+const activeQuiz = ref<string | null>(null);
 
 // **Define Admin Layout**
 definePageMeta({ layout: "admin" });
@@ -147,6 +184,7 @@ onMounted(async () => {
   await fetchMessen();
   await fetchBrandStats();
   await fetchCoverStats();
+  await fetchQuizzes();
 });
 
 async function fetchCoverStats() {
@@ -154,9 +192,12 @@ async function fetchCoverStats() {
   coverStats.value = [];
 
   const coverSnap = await getDocs(collection(db, "coverSelections"));
-  const coverTrackingSnap = await getDocs(collection(db, "coverSelectionsTracking"));
+  const coverTrackingSnap = await getDocs(
+    collection(db, "coverSelectionsTracking")
+  );
 
-  const coverCounts: { [coverId: string]: { countA: number; countB: number } } = {};
+  const coverCounts: { [coverId: string]: { countA: number; countB: number } } =
+    {};
 
   // Initialize coverStats
   coverSnap.forEach((doc) => {
@@ -195,7 +236,10 @@ async function fetchCoverStats() {
     }
 
     if (coverCounts[data.coverId]) {
-      if (data.selectedCover === coverStats.value.find((c) => c.coverId === data.coverId)?.coverA) {
+      if (
+        data.selectedCover ===
+        coverStats.value.find((c) => c.coverId === data.coverId)?.coverA
+      ) {
         coverCounts[data.coverId].countA++;
       } else {
         coverCounts[data.coverId].countB++;
@@ -238,7 +282,7 @@ async function setActiveMesse(messe: any) {
 async function fetchBrandStats() {
   statsLoaded.value = false;
 
-  const stats: { [brand: string]: { [attribute: string]: number } } = {};
+  const stats: Record<string, Record<string, number>> = {};
   allAttributes.value.clear();
   brandNames.value = [];
 
@@ -340,6 +384,29 @@ function renderChart() {
       },
     },
   });
+}
+
+async function fetchQuizzes() {
+  const quizSnap = await getDocs(collection(db, "quizzes"));
+  const allQuizzes: Array<{ id: string; title: string }> = [];
+
+  quizSnap.forEach((docSnap) => {
+    const data = docSnap.data();
+    // Adjust field name if your quiz docs store a different key than "title"
+    const quizTitle = data.title || "Untitled Quiz";
+    allQuizzes.push({ id: docSnap.id, title: quizTitle });
+  });
+
+  quizzes.value = allQuizzes;
+
+  // By default, pick the first quiz if available
+  if (quizzes.value.length > 0) {
+    activeQuiz.value = quizzes.value[0].id;
+  }
+}
+
+function setActiveQuiz(quizId: string | null) {
+  activeQuiz.value = quizId;
 }
 </script>
 

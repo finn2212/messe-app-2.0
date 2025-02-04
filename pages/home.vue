@@ -46,7 +46,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, serverTimestamp } from "firebase/firestore";
 import { navigateTo } from "#app";
 import GridCards from "~/components/GridCards.vue";
 import Spinner from "~/components/Spinner.vue";

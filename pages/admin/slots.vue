@@ -4,82 +4,108 @@
       Slots konfigurieren
     </h1>
 
-    <!-- Draggable Grid Layout -->
+    <!-- Draggable Grid with 3 columns -->
     <Draggable
       v-model="slots"
       :item-key="itemKey"
       @end="onDragEnd"
       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
     >
+      <!-- Exactly one root <div> for each slot item -->
       <template #item="{ element, index }">
-        <div class="relative border border-gray-200 p-4 bg-white shadow-md rounded-md cursor-grab">
-          <!-- Image with Overlay -->
-          <div class="relative h-48 w-full">
-            <img
-              v-if="element.imageUrl"
-              :src="element.imageUrl"
-              alt="Slot Bild"
-              class="absolute inset-0 w-full h-full object-cover rounded-md"
-            />
-            <div
-              v-else
-              class="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-500"
-            >
-              Kein Bild
-            </div>
-            <div
-              class="absolute top-2 left-1/2 transform -translate-x-1/2 bg-white bg-opacity-80 px-3 py-1 rounded-md text-sm font-semibold"
-            >
-              {{ element.displayName || "Kein Titel" }}
-            </div>
-          </div>
-
-          <!-- Slot Settings -->
-          <div class="mt-4 p-2 bg-gray-100 rounded-md">
-            <div class="text-sm font-medium text-gray-700">
-              App Anzeige Titel: {{ index + 1 }}
-            </div>
+        <div
+          class="group relative flex flex-col gap-2 cursor-grab border border-gray-200 p-4
+                 hover:bg-gray-50 focus:outline-none rounded-md"
+        >
+          <!-- Slot Index & Display Name -->
+          <div class="flex items-center justify-between">
+            <h2 class="font-semibold text-sm text-gray-700">
+              Slot # {{ index + 1 }}
+            </h2>
             <input
               v-model="element.displayName"
-              placeholder="Titel eingeben"
-              class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              placeholder="Anzeige-Titel"
+              class="rounded-md border border-gray-300 px-2 text-sm shadow-sm
+                     focus:border-indigo-500 focus:ring-indigo-500"
             />
+          </div>
 
-            <div class="mt-2 text-sm font-medium text-gray-700">
-              Slot-Typ:
-            </div>
+          <!-- Internal Title -->
+          <div class="flex items-center">
+            <label class="block text-xs font-medium text-gray-500 mr-1">
+              Titel:
+            </label>
+            <input
+              v-model="element.title"
+              placeholder="Interner Titel"
+              class="flex-1 rounded-md border border-gray-300 px-2 text-sm shadow-sm
+                     focus:border-indigo-500 focus:ring-indigo-500"
+            />
+          </div>
+
+          <!-- Slot Type (currently only "quiz") -->
+          <div class="flex flex-col">
+            <label class="text-sm font-medium text-gray-700">Slot-Typ:</label>
             <select
               v-model="element.type"
               @change="resetSlotData(element)"
-              class="block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              class="rounded-md border-gray-300 text-sm shadow-sm mt-1
+                     focus:border-indigo-500 focus:ring-indigo-500"
             >
               <option value="">-- Bitte wählen --</option>
               <option value="quiz">Quiz</option>
-              <option value="marken">Marken-Attribute</option>
-              <option value="buchcover">Buchcover</option>
-              <option value="feedback">Feedback</option>
-              <option value="newsletter">Newsletter</option>
             </select>
+          </div>
 
-            <!-- Slot-Bild Upload -->
-            <div class="mt-4">
-              <label class="text-sm font-medium text-gray-700">Slot-Bild hochladen:</label>
-              <input
-                type="file"
-                @change="uploadSlotImage($event, index)"
-                class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-indigo-600 file:py-2 file:px-4 file:text-sm file:font-semibold file:text-white hover:file:bg-indigo-500 mt-1"
+          <!-- QUIZ selection -->
+          <div v-if="element.type === 'quiz'">
+            <label class="text-xs text-gray-700">Quiz auswählen:</label>
+            <select
+              v-model="element.dataId"
+              class="w-full rounded-md border-gray-300 text-sm shadow-sm
+                     focus:border-indigo-500 focus:ring-indigo-500 mt-1"
+            >
+              <option value="">-- bitte wählen --</option>
+              <option v-for="quiz in quizzes" :key="quiz.id" :value="quiz.id">
+                {{ quiz.data.title }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Optional Image Upload -->
+          <div class="mt-2">
+            <label class="block text-xs font-medium text-gray-700">
+              Bild (optional):
+            </label>
+            <div
+              v-if="element.imageUrl"
+              class="mt-1 w-24 h-24 border rounded"
+            >
+              <img
+                :src="element.imageUrl"
+                alt="Slot Bild"
+                class="w-full h-full object-cover"
               />
             </div>
+            <input
+              type="file"
+              @change="uploadSlotImage($event, index)"
+              class="mt-1 text-xs text-gray-500
+                     file:mr-2 file:rounded-md file:border-0 file:bg-indigo-600
+                     file:py-1 file:px-3 file:text-xs file:font-semibold file:text-white
+                     hover:file:bg-indigo-500"
+            />
           </div>
         </div>
       </template>
     </Draggable>
 
-    <!-- Speichern-Button -->
+    <!-- Save Button -->
     <div class="mt-6 flex justify-center">
       <button
         @click="saveSlots"
-        class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+        class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold
+               text-white shadow-sm hover:bg-indigo-500"
       >
         Slots speichern
       </button>
@@ -90,8 +116,15 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import Draggable from "vuedraggable";
-import { doc, setDoc, updateDoc, getDoc } from "firebase/firestore";
-import { useFirestore } from "#imports";
+import {
+  doc,
+  setDoc,
+  updateDoc,
+  getDoc,
+  collection,
+  getDocs,
+} from "firebase/firestore";
+import { useFirebaseApp, useFirestore } from "#imports";
 import {
   getStorage,
   ref as storageRef,
@@ -99,42 +132,84 @@ import {
   getDownloadURL,
 } from "firebase/storage";
 
+// This page layout is for your admin
+definePageMeta({ layout: "admin" });
+
 // Firestore & Storage
 const db = useFirestore();
-const storage = getStorage();
+const firebaseApp = useFirebaseApp();
+const storage = getStorage(firebaseApp);
 
-// Slot Interface
+// ---- SlotItem interface ----
 interface SlotItem {
-  displayName: string;
-  type: "quiz" | "marken" | "buchcover" | "feedback" | "newsletter" | "keine-auswahl";
+  displayName: string; // e.g. "Lehrerquiz"
+  title: string;       // internal label
+  type: "" | "quiz";   // only quiz for now
+  dataId?: string;     // single doc ID for the quiz
   imageUrl?: string;
 }
 
-// Slots
+// The draggable slots array
 const slots = ref<SlotItem[]>([]);
 
-// Unique key for draggable items
+// Quizzes from Firestore
+const quizzes = ref<Array<{ id: string; data: any }>>([]);
+
+/**
+ * For each item, we must give a stable unique key
+ */
 function itemKey(item: SlotItem) {
-  return item.displayName || Math.random().toString();
+  return (item.title || "slot") + ":" + (item.dataId || "");
 }
 
-// Load slots from Firestore
+/** 
+ * onMounted -> Load Firestore data & quiz docs
+ */
 onMounted(async () => {
-  const docRef = doc(db, "config", "homeSlots");
-  const snap = await getDoc(docRef);
-  if (snap.exists()) {
-    slots.value = snap.data().slots || [];
-  } else {
-    slots.value = [
-      { displayName: "Slot 1", type: "", imageUrl: "" },
-      { displayName: "Slot 2", type: "", imageUrl: "" },
-      { displayName: "Slot 3", type: "", imageUrl: "" },
-    ];
-    await setDoc(docRef, { slots: slots.value });
-  }
+  await loadSlots();
+  await loadQuizzes();
 });
 
-// Save Slots
+/** 
+ * Load or init the "homeSlots" doc
+ */
+async function loadSlots() {
+  const docRef = doc(db, "config", "homeSlots");
+  const snap = await getDoc(docRef);
+
+  if (snap.exists()) {
+    const loadedSlots = snap.data().slots as SlotItem[];
+    // Ensure imageUrl is defined
+    loadedSlots.forEach((s) => {
+      if (!s.imageUrl) s.imageUrl = "";
+    });
+    slots.value = loadedSlots;
+  } else {
+    // create default, e.g. 9 slots
+    const defaultSlots: SlotItem[] = Array.from({ length: 9 }, (_, i) => ({
+      title: `Slot ${i + 1}`,
+      displayName: "",
+      type: "",
+      dataId: "",
+      imageUrl: "",
+    }));
+    await setDoc(docRef, { slots: defaultSlots });
+    slots.value = defaultSlots;
+  }
+}
+
+/** 
+ * Draggable => rename slots if desired
+ */
+function onDragEnd() {
+  slots.value.forEach((slot, i) => {
+    slot.title = `Slot ${i + 1}`;
+  });
+}
+
+/** 
+ * Save to Firestore
+ */
 async function saveSlots() {
   const docRef = doc(db, "config", "homeSlots");
   try {
@@ -145,18 +220,16 @@ async function saveSlots() {
   alert("Slots gespeichert!");
 }
 
-// Reset Slot Data on Type Change
-function resetSlotData(slot: SlotItem) {
-  slot.imageUrl = "";
-}
-
-// Upload Slot Image
-async function uploadSlotImage(event: any, index: number) {
-  const file = event.target.files[0];
+/** 
+ * Upload slot image
+ */
+async function uploadSlotImage(event: Event, index: number) {
+  const inputEl = event.target as HTMLInputElement;
+  const file = inputEl.files?.[0];
   if (!file) return;
 
   try {
-    const filePath = `slot-images/${Date.now()}_${file.name}`;
+    const filePath = `slot-images/${Date.now()}_slot_${file.name}`;
     const storageReference = storageRef(storage, filePath);
     await uploadBytes(storageReference, file);
     const downloadURL = await getDownloadURL(storageReference);
@@ -166,13 +239,24 @@ async function uploadSlotImage(event: any, index: number) {
   }
 }
 
-// Layout
-definePageMeta({ layout: "admin" });
+/** 
+ * Load quizzes for the dropdown
+ */
+async function loadQuizzes() {
+  const quizSnap = await getDocs(collection(db, "quizzes"));
+  quizSnap.forEach((docSnap) => {
+    quizzes.value.push({ id: docSnap.id, data: docSnap.data() });
+  });
+}
+
+/**
+ * If slot type changes, reset data that doesn't apply
+ */
+function resetSlotData(slot: SlotItem) {
+  slot.dataId = "";
+}
 </script>
 
 <style scoped>
-/* Draggable Item Hover */
-.grid div {
-  transition: transform 0.2s;
-}
+/* Example styling; adjust as needed */
 </style>

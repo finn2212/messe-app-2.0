@@ -86,7 +86,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRoute, navigateTo } from "#app";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, addDoc, collection, serverTimestamp} from "firebase/firestore";
 import GridCards from "~/components/GridCards.vue";
 import Spinner from "~/components/Spinner.vue";
 const router = useRouter();
@@ -178,14 +178,35 @@ function preloadImages(urls: string[]) {
   return Promise.all(promises);
 }
 
-// Click on an answer
-function chooseAnswer(option: any) {
-  // find index
+async function chooseAnswer(option: any) {
+  if (selectedAnswer.value !== null) return; // Prevent multiple clicks
+
+  // Find selected option index
   const idx = quiz.value.questions[currentQuestion.value].options.findIndex(
     (o: any) => o === option
   );
-  if (selectedAnswer.value === null) {
-    selectedAnswer.value = idx;
+  selectedAnswer.value = idx;
+
+  // Track answer in Firestore
+  await trackQuizAnswer(idx);
+}
+
+async function trackQuizAnswer(selectedIndex: number) {
+  if (!quiz.value || currentQuestion.value >= quiz.value.questions.length) return;
+
+  const questionData = quiz.value.questions[currentQuestion.value];
+  const selectedOption = questionData.options[selectedIndex];
+
+  try {
+    await addDoc(collection(db, "quizSelectionsTracking"), {
+      quizId: quizId, // Store the quiz ID
+      question: questionData.question, // Store the question text
+      selectedAnswer: selectedOption.text, // Store the selected answer
+      correct: selectedOption.correct, // Boolean: Was it correct?
+      timestamp: serverTimestamp(), // Store Firestore timestamp
+    });
+  } catch (err) {
+    console.error("Error tracking quiz answer:", err);
   }
 }
 
