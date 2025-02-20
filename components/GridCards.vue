@@ -28,7 +28,7 @@
   
   const props = defineProps<{
     items: GridItem[];
-    onCardClick: (item: GridItem) => void;
+    onCardClick: (item: GridItem, index?: number) => void;
     gridColumns?: number;
     imageWidth?: number;
     imageHeight?: number;
