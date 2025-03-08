@@ -1,16 +1,14 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
+// nuxt.config.ts
 export default defineNuxtConfig({
-  // Deine vorhandenen Einstellungen
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
-
-  // Hier binden wir das nuxt-vuefire Modul ein
-  modules: [// weitere Module ...
-  'nuxt-vuefire', "@nuxtjs/tailwindcss", 'nuxt-headlessui'],
-
-  // Hier kommt die Firebase-Konfiguration rein
+  modules: [
+    'nuxt-vuefire',
+    "@nuxtjs/tailwindcss",
+    'nuxt-headlessui',
+    '@vite-pwa/nuxt'
+  ],
   vuefire: {
-    // Standard-Firebase-SDK-Konfiguration (Client-Seite)
     config: {
       apiKey: "AIzaSyDwAqoQhZfHuENatg36PJA2LFgcBHSu-GM",
       authDomain: "pons-messe-app2.firebaseapp.com",
@@ -23,5 +21,41 @@ export default defineNuxtConfig({
     auth: {
       enabled: false
     }
+  },
+  pwa: {
+    registerType: 'autoUpdate',
+    manifest: {
+      name: 'Meine App',
+      short_name: 'App',
+      theme_color: '#ffffff',
+      icons: [
+        {
+          src: '/icon-192.png',
+          sizes: '192x192',
+          type: 'image/png'
+        },
+        {
+          src: '/icon-512.png',
+          sizes: '512x512',
+          type: 'image/png'
+        }
+      ]
+    },
+    workbox: {
+      runtimeCaching: [
+        {
+          // Regel für Firebase-Bilder: passt auf URLs, die von Firebase Storage kommen
+          urlPattern: /^https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/pons-messe-app2\.firebasestorage\.app\/.*/,
+          handler: 'StaleWhileRevalidate',
+          options: {
+            cacheName: 'firebase-images',
+            expiration: {
+              maxEntries: 50,
+              maxAgeSeconds: 86400, // Cache-Einträge werden maximal 1 Tag gespeichert
+            }
+          }
+        }
+      ]
+    }
   }
-})
+});

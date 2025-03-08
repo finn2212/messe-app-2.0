@@ -9,7 +9,9 @@
     </header>
 
     <main class="flex-grow">
-      <NuxtPage />
+      <keep-alive>
+        <NuxtPage />
+      </keep-alive>
     </main>
 
     <!-- Footer with centered logo -->
