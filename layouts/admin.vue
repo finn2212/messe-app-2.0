@@ -173,6 +173,7 @@ const navigation = [
   { name: 'Quizzes', href: '/admin/quizzes', icon: QuestionMarkCircleIcon },
   { name: 'Brand Attributes', href: '/admin/brand-attributes', icon: Cog6ToothIcon },
   { name: 'Cover Selections', href: '/admin/cover-selections', icon: BookOpenIcon },
+  { name: 'Feedback', href: '/admin/feedback', icon: ChartBarIcon  },
   { name: 'App Einstellungen', href: '/admin/app-settings', icon: AdjustmentsHorizontalIcon  },
   { name: 'Messe Termine', href: '/admin/messen', icon: CalendarIcon },
   { name: 'Analysien', href: '/admin/stats', icon: ChartBarIcon  },
