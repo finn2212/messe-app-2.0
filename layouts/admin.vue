@@ -1,6 +1,5 @@
 <template>
   <div class="h-full bg-white">
-
     <!-- Mobile-Only Off-Canvas Sidebar -->
     <TransitionRoot as="template" :show="sidebarOpen">
       <Dialog class="relative z-50 lg:hidden" @close="sidebarOpen = false">
@@ -36,7 +35,9 @@
                 leave-from="opacity-100"
                 leave-to="opacity-0"
               >
-                <div class="absolute left-full top-0 flex w-16 justify-center pt-5">
+                <div
+                  class="absolute left-full top-0 flex w-16 justify-center pt-5"
+                >
                   <button
                     type="button"
                     class="-m-2.5 p-2.5 text-white"
@@ -48,7 +49,9 @@
                 </div>
               </TransitionChild>
               <!-- Mobile Sidebar Content -->
-              <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
+              <div
+                class="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4"
+              >
                 <div class="flex h-16 shrink-0 items-center">
                   <!-- Logo oder Text -->
                   <h2 class="text-indigo-600 font-bold">Admin Menu</h2>
@@ -76,7 +79,6 @@
                     </li>
 
                     <!-- ggf. mehr Links oder Teams hier -->
-
                   </ul>
                 </nav>
               </div>
@@ -88,8 +90,12 @@
     </TransitionRoot>
 
     <!-- Desktop Sidebar -->
-    <div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
-      <div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
+    <div
+      class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col"
+    >
+      <div
+        class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4"
+      >
         <div class="flex h-16 shrink-0 items-center">
           <!-- Logo oder Text -->
           <h2 class="text-indigo-600 font-bold">Admin Menu</h2>
@@ -122,7 +128,9 @@
     <!-- Haupt-Bereich -->
     <div class="lg:pl-64">
       <!-- Obere Leiste -->
-      <div class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:px-6 lg:px-8">
+      <div
+        class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:px-6 lg:px-8"
+      >
         <!-- Hamburger Button nur mobil sichtbar -->
         <button
           type="button"
@@ -137,13 +145,14 @@
 
         <!-- Titel od. Suchleiste -->
         <h2 class="text-lg font-semibold leading-6 text-gray-900">
-          Admin-Bereich
+          App Konfiguration
         </h2>
       </div>
-       <!-- Admin Page Content -->
+      <!-- Admin Page Content -->
       <main class="py-10">
         <div class="px-4 sm:px-6 lg:px-8">
-          <NuxtPage /> <!-- Replaces <slot /> -->
+          <NuxtPage />
+          <!-- Replaces <slot /> -->
         </div>
       </main>
     </div>
@@ -151,35 +160,55 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref } from "vue";
 import {
   Dialog,
   DialogPanel,
   TransitionRoot,
   TransitionChild,
-} from '@headlessui/vue'
-import { Bars3Icon, XMarkIcon } from '@heroicons/vue/24/outline'
-import { NuxtLink } from '#components'
+} from "@headlessui/vue";
+import { Bars3Icon, XMarkIcon } from "@heroicons/vue/24/outline";
+import { NuxtLink } from "#components";
 
 // Deine Admin-Menü-Einträge
 // Hier ersetzen wir die "Dashboard", "Team", etc. aus dem Tailwind-Beispiel
 // mit deinen Admin-Routen:
-import { Cog6ToothIcon, FolderIcon, AdjustmentsHorizontalIcon, BookOpenIcon , CalendarIcon , ChartBarIcon, QuestionMarkCircleIcon } from '@heroicons/vue/24/outline'
+import {
+  Cog6ToothIcon,
+  FolderIcon,
+  AdjustmentsHorizontalIcon,
+  BookOpenIcon,
+  CalendarIcon,
+  ChartBarIcon,
+  QuestionMarkCircleIcon,
+} from "@heroicons/vue/24/outline";
 
 // Du kannst gerne unterschiedliche Heroicons importieren, z.B. Cog6ToothIcon
 // oder TrashIcon etc. - Hier nur als Beispiel
 const navigation = [
-  { name: 'Slots', href: '/admin/slots', icon: FolderIcon },
-  { name: 'Quizzes', href: '/admin/quizzes', icon: QuestionMarkCircleIcon },
-  { name: 'Brand Attributes', href: '/admin/brand-attributes', icon: Cog6ToothIcon },
-  { name: 'Cover Selections', href: '/admin/cover-selections', icon: BookOpenIcon },
-  { name: 'Feedback', href: '/admin/feedback', icon: ChartBarIcon  },
-  { name: 'App Einstellungen', href: '/admin/app-settings', icon: AdjustmentsHorizontalIcon  },
-  { name: 'Messe Termine', href: '/admin/messen', icon: CalendarIcon },
-  { name: 'Analysien', href: '/admin/stats', icon: ChartBarIcon  },
-]
+  { name: "App Aufbau", href: "/admin/slots", icon: FolderIcon },
+  { name: "Quizzes", href: "/admin/quizzes", icon: QuestionMarkCircleIcon },
+  {
+    name: "Makern Eigenschaften",
+    href: "/admin/brand-attributes",
+    icon: Cog6ToothIcon,
+  },
+  {
+    name: "Bild Cover Auswahl",
+    href: "/admin/cover-selections",
+    icon: BookOpenIcon,
+  },
+  { name: "Marken Feedback", href: "/admin/feedback", icon: ChartBarIcon },
+  { name: "Messe Termine", href: "/admin/messen", icon: CalendarIcon },
+  { name: "Analysien", href: "/admin/stats", icon: ChartBarIcon },
+  {
+    name: "App Einstellungen",
+    href: "/admin/app-settings",
+    icon: AdjustmentsHorizontalIcon,
+  },
+];
 
-const sidebarOpen = ref(false)
+const sidebarOpen = ref(false);
 </script>
 
 <style scoped>

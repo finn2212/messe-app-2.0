@@ -2,7 +2,8 @@
   <div>
     <h1 class="text-base font-semibold text-gray-900">Admin - Quizzes</h1>
     <p class="mt-2 text-sm text-gray-700">
-      Hier findest du alle vorhandenen Quizzes. Du kannst neue hinzufügen, bearbeiten oder löschen.
+      Hier findest du alle vorhandenen Quizzes. Du kannst neue hinzufügen,
+      bearbeiten oder löschen.
     </p>
 
     <!-- Tabelle der vorhandenen Quizzes -->
@@ -37,10 +38,7 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200 bg-white">
-                <tr
-                  v-for="quizItem in quizzes"
-                  :key="quizItem.id"
-                >
+                <tr v-for="quizItem in quizzes" :key="quizItem.id">
                   <td
                     class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900 font-medium sm:pl-6"
                   >
@@ -78,9 +76,7 @@
     <div class="mt-4">
       <button
         type="button"
-        class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm
-               hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2
-               focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
         @click="newQuiz"
       >
         Neues Quiz erstellen
@@ -95,7 +91,6 @@
         {{ editId ? "Quiz bearbeiten" : "Neues Quiz erstellen" }}
       </h2>
       <form @submit.prevent="saveQuiz" class="space-y-4">
-
         <!-- Titel -->
         <div>
           <label class="block text-sm font-medium text-gray-700">Titel</label>
@@ -120,33 +115,13 @@
             </label>
             <input
               v-model="question.question"
-              class="mb-2 block w-full rounded-md border-gray-300 shadow-sm
-                     focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              class="mb-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             />
-
-            <!-- Frage-Bild -->
-            <div class="mb-2">
-              <label class="block text-sm font-medium text-gray-700">Frage-Bild (optional)</label>
-              <div v-if="question.questionImageUrl" class="mt-1 w-32 h-32 overflow-hidden">
-                <img
-                  :src="question.questionImageUrl"
-                  alt="Frage-Bild"
-                  class="w-full h-full object-cover border rounded"
-                />
-              </div>
-              <input
-                type="file"
-                @change="uploadQuestionImage(qIndex, $event)"
-                class="block w-full text-sm text-gray-500
-                       file:mr-4 file:rounded-md file:border-0
-                       file:bg-indigo-600 file:py-2 file:px-4 file:text-sm
-                       file:font-semibold file:text-white hover:file:bg-indigo-500 mt-1"
-              />
-            </div>
-
             <!-- Antwort-Optionen -->
             <div class="option-list mb-2">
-              <h4 class="text-sm font-medium text-gray-800">Antwort-Optionen</h4>
+              <h4 class="text-sm font-medium text-gray-800">
+                Antwort-Optionen
+              </h4>
               <div
                 v-for="(option, oIndex) in question.options"
                 :key="oIndex"
@@ -156,12 +131,13 @@
                 <input
                   v-model="option.text"
                   placeholder="Antwort-Text"
-                  class="block w-1/2 rounded-md border-gray-300 shadow-sm
-                         focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  class="block w-1/2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 />
                 <!-- Option-Bild -->
                 <div>
-                  <label class="block text-xs text-gray-700">Option-Bild (optional)</label>
+                  <label class="block text-xs text-gray-700"
+                    >Option-Bild (1920 × 1200)</label
+                  >
                   <div
                     v-if="option.optionImageUrl"
                     class="mt-1 w-16 h-16 overflow-hidden"
@@ -175,10 +151,7 @@
                   <input
                     type="file"
                     @change="uploadOptionImage(qIndex, oIndex, $event)"
-                    class="block w-full text-xs text-gray-500
-                           file:mr-2 file:rounded-md file:border-0
-                           file:bg-indigo-600 file:py-1 file:px-2 file:text-xs
-                           file:font-semibold file:text-white hover:file:bg-indigo-500 mt-1"
+                    class="block w-full text-xs text-gray-500 file:mr-2 file:rounded-md file:border-0 file:bg-indigo-600 file:py-1 file:px-2 file:text-xs file:font-semibold file:text-white hover:file:bg-indigo-500 mt-1"
                   />
                 </div>
 
@@ -234,9 +207,7 @@
         <div class="flex items-center gap-4 mt-4">
           <button
             type="submit"
-            class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm
-                   hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2
-                   focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
           >
             {{ editId ? "Änderungen speichern" : "Erstellen" }}
           </button>
@@ -258,9 +229,9 @@
 // Layout
 definePageMeta({
   layout: "admin",
-})
+});
 
-import { ref, onMounted } from 'vue'
+import { ref, onMounted } from "vue";
 import {
   collection,
   doc,
@@ -268,21 +239,26 @@ import {
   getDoc,
   addDoc,
   updateDoc,
-  deleteDoc
-} from 'firebase/firestore'
-import { useFirebaseApp } from '#imports'
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
+  deleteDoc,
+} from "firebase/firestore";
+import { useFirebaseApp } from "#imports";
+import {
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL,
+} from "firebase/storage";
 
 // Aus nuxt-vuefire
-const db = useFirestore()
-const firebaseApp = useFirebaseApp()
-const storage = getStorage(firebaseApp)
+const db = useFirestore();
+const firebaseApp = useFirebaseApp();
+const storage = getStorage(firebaseApp);
 
 // Liste vorhandener Quizzes
-const quizzes = ref<Array<{ id: string; data: any }>>([])
+const quizzes = ref<Array<{ id: string; data: any }>>([]);
 
 // Aktuelles Quiz im Bearbeitungsmodus
-const editId = ref<string|null>(null)
+const editId = ref<string | null>(null);
 
 // Formular-State
 const formData = ref({
@@ -295,90 +271,90 @@ const formData = ref({
         {
           text: "",
           optionImageUrl: "", // NEU: Bild pro Option
-          correct: false
+          correct: false,
         },
         {
           text: "",
           optionImageUrl: "",
-          correct: false
+          correct: false,
         },
       ],
     },
   ],
-})
+});
 
 // onMounted -> Quizzes laden
 onMounted(async () => {
-  await loadQuizzes()
-})
+  await loadQuizzes();
+});
 
 // Quizzes laden
 async function loadQuizzes() {
-  quizzes.value = []
-  const querySnap = await getDocs(collection(db, "quizzes"))
+  quizzes.value = [];
+  const querySnap = await getDocs(collection(db, "quizzes"));
   querySnap.forEach((docSnap) => {
     quizzes.value.push({
       id: docSnap.id,
       data: docSnap.data(),
-    })
-  })
+    });
+  });
 }
 
 // Quiz bearbeiten
 async function editQuiz(id: string) {
-  editId.value = id
-  const docRef = doc(db, "quizzes", id)
-  const snap = await getDoc(docRef)
-  if (!snap.exists()) return
+  editId.value = id;
+  const docRef = doc(db, "quizzes", id);
+  const snap = await getDoc(docRef);
+  if (!snap.exists()) return;
 
-  const quizData = snap.data() as any
+  const quizData = snap.data() as any;
   // Falls Felder fehlen, initialisieren
   quizData.questions?.forEach((q: any) => {
     if (!q.questionImageUrl) {
-      q.questionImageUrl = ""
+      q.questionImageUrl = "";
     }
     q.options?.forEach((opt: any) => {
       if (!opt.optionImageUrl) {
-        opt.optionImageUrl = ""
+        opt.optionImageUrl = "";
       }
-    })
-  })
+    });
+  });
 
-  formData.value = quizData
+  formData.value = quizData;
 }
 
 // Neues Quiz
 function newQuiz() {
-  editId.value = null
-  resetForm()
+  editId.value = null;
+  resetForm();
 }
 
 // Speichern
 async function saveQuiz() {
-  if (!formData.value.title) return
+  if (!formData.value.title) return;
 
   if (editId.value) {
-    const docRef = doc(db, "quizzes", editId.value)
-    await updateDoc(docRef, { ...formData.value })
+    const docRef = doc(db, "quizzes", editId.value);
+    await updateDoc(docRef, { ...formData.value });
   } else {
-    await addDoc(collection(db, "quizzes"), { ...formData.value })
+    await addDoc(collection(db, "quizzes"), { ...formData.value });
   }
-  cancelEdit()
-  await loadQuizzes()
+  cancelEdit();
+  await loadQuizzes();
 }
 
 // Löschen
 async function deleteQuiz(id: string) {
-  if (!confirm("Wirklich löschen?")) return
-  const docRef = doc(db, "quizzes", id)
-  await deleteDoc(docRef)
-  await loadQuizzes()
+  if (!confirm("Wirklich löschen?")) return;
+  const docRef = doc(db, "quizzes", id);
+  await deleteDoc(docRef);
+  await loadQuizzes();
 }
 
 // Abbrechen
 function cancelEdit() {
-  editId.value = null
-  resetForm()
+  editId.value = null;
+  resetForm();
 }
 
 // Reset
@@ -393,17 +369,17 @@ function resetForm() {
           {
             text: "",
             optionImageUrl: "",
-            correct: false
+            correct: false,
           },
           {
             text: "",
             optionImageUrl: "",
-            correct: false
+            correct: false,
           },
-        ]
-      }
-    ]
-  }
+        ],
+      },
+    ],
+  };
 }
 
 // Hilfsfunktionen (Fragen/Optionen)
@@ -415,49 +391,50 @@ function addQuestion() {
       { text: "", optionImageUrl: "", correct: false },
       { text: "", optionImageUrl: "", correct: false },
     ],
-  })
+  });
 }
 function removeQuestion(index: number) {
-  formData.value.questions.splice(index, 1)
+  formData.value.questions.splice(index, 1);
 }
 function addOption(qIndex: number) {
   formData.value.questions[qIndex].options.push({
     text: "",
     optionImageUrl: "",
-    correct: false
-  })
+    correct: false,
+  });
 }
 function removeOption(qIndex: number, oIndex: number) {
-  formData.value.questions[qIndex].options.splice(oIndex, 1)
+  formData.value.questions[qIndex].options.splice(oIndex, 1);
 }
 
 // Upload pro Frage
 async function uploadQuestionImage(qIndex: number, event: any) {
-  const file = event.target.files[0]
-  if (!file) return
+  const file = event.target.files[0];
+  if (!file) return;
   try {
-    const filePath = `quiz-questions/${Date.now()}_question_${file.name}`
-    const sRef = storageRef(storage, filePath)
-    await uploadBytes(sRef, file)
-    const downloadURL = await getDownloadURL(sRef)
-    formData.value.questions[qIndex].questionImageUrl = downloadURL
+    const filePath = `quiz-questions/${Date.now()}_question_${file.name}`;
+    const sRef = storageRef(storage, filePath);
+    await uploadBytes(sRef, file);
+    const downloadURL = await getDownloadURL(sRef);
+    formData.value.questions[qIndex].questionImageUrl = downloadURL;
   } catch (err) {
-    console.error('Fehler beim Frage-Bild-Upload:', err)
+    console.error("Fehler beim Frage-Bild-Upload:", err);
   }
 }
 
 // Upload pro Antwort-Option
 async function uploadOptionImage(qIndex: number, oIndex: number, event: any) {
-  const file = event.target.files[0]
-  if (!file) return
+  const file = event.target.files[0];
+  if (!file) return;
   try {
-    const filePath = `quiz-options/${Date.now()}_option_${file.name}`
-    const sRef = storageRef(storage, filePath)
-    await uploadBytes(sRef, file)
-    const downloadURL = await getDownloadURL(sRef)
-    formData.value.questions[qIndex].options[oIndex].optionImageUrl = downloadURL
+    const filePath = `quiz-options/${Date.now()}_option_${file.name}`;
+    const sRef = storageRef(storage, filePath);
+    await uploadBytes(sRef, file);
+    const downloadURL = await getDownloadURL(sRef);
+    formData.value.questions[qIndex].options[oIndex].optionImageUrl =
+      downloadURL;
   } catch (err) {
-    console.error('Fehler beim Option-Bild-Upload:', err)
+    console.error("Fehler beim Option-Bild-Upload:", err);
   }
 }
 </script>

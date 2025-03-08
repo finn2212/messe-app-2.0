@@ -134,12 +134,12 @@ const appSettings = ref<AppSettings>({
 const fields = [
   { key: "backgroundImageUrl", label: "Hintergrundbild (Home)" },
   { key: "ponsLogoUrl", label: "Pons Logo" },
-  { key: "langenscheidtLogoUrl", label: "Langenscheidt Logo" },
-  { key: "klettLogoUrl", label: "Klett Logo" },
-  { key: "footerLogoUrl", label: "Footer Logo" },
-  { key: "newsletterLanguageUrl", label: "Newsletter-Sprache (Bild)" },
-  { key: "newsletterSchoolUrl", label: "Newsletter-Schule (Bild)" },
-  { key: "newsletterNoneUrl", label: "Newsletter-Keins (Bild)" }
+  { key: "langenscheidtLogoUrl", label: "Langenscheidt Logo (1920 × 2620)" },
+  { key: "klettLogoUrl", label: "Klett Logo (1920 × 2620)" },
+  { key: "footerLogoUrl", label: "Footer Logo (2500 × 303)" },
+  { key: "newsletterLanguageUrl", label: "Newsletter-Sprache (1920 × 2620)" },
+  { key: "newsletterSchoolUrl", label: "Newsletter-Schule (1920 × 2620)" },
+  { key: "newsletterNoneUrl", label: "Newsletter-Keins (1920 × 2620)" }
 ]
 
 // Load existing settings from Firestore on mount
