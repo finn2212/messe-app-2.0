@@ -14,8 +14,7 @@
       <!-- Exactly one root <div> for each slot item -->
       <template #item="{ element, index }">
         <div
-          class="group relative flex flex-col gap-2 cursor-grab border border-gray-200 p-4
-                 hover:bg-gray-50 focus:outline-none rounded-md"
+          class="group relative flex flex-col gap-2 cursor-grab border border-gray-200 p-4 hover:bg-gray-50 focus:outline-none rounded-md"
         >
           <!-- Slot Index & Display Name -->
           <div class="flex items-center justify-between">
@@ -25,8 +24,7 @@
             <input
               v-model="element.displayName"
               placeholder="Anzeige-Titel"
-              class="rounded-md border border-gray-300 px-2 text-sm shadow-sm
-                     focus:border-indigo-500 focus:ring-indigo-500"
+              class="rounded-md border border-gray-300 px-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             />
           </div>
 
@@ -38,8 +36,7 @@
             <input
               v-model="element.title"
               placeholder="Interner Titel"
-              class="flex-1 rounded-md border border-gray-300 px-2 text-sm shadow-sm
-                     focus:border-indigo-500 focus:ring-indigo-500"
+              class="flex-1 rounded-md border border-gray-300 px-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             />
           </div>
 
@@ -49,11 +46,15 @@
             <select
               v-model="element.type"
               @change="resetSlotData(element)"
-              class="rounded-md border-gray-300 text-sm shadow-sm mt-1
-                     focus:border-indigo-500 focus:ring-indigo-500"
+              class="rounded-md border-gray-300 text-sm shadow-sm mt-1 focus:border-indigo-500 focus:ring-indigo-500"
             >
-              <option value="">-- Bitte wählen --</option>
-              <option value="quiz">Quiz</option>
+              <option
+                v-for="type in uniqueSlotTypes"
+                :key="type.value"
+                :value="type.value"
+              >
+                {{ type.label }}
+              </option>
             </select>
           </div>
 
@@ -62,12 +63,27 @@
             <label class="text-xs text-gray-700">Quiz auswählen:</label>
             <select
               v-model="element.dataId"
-              class="w-full rounded-md border-gray-300 text-sm shadow-sm
-                     focus:border-indigo-500 focus:ring-indigo-500 mt-1"
+              class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 mt-1"
             >
               <option value="">-- bitte wählen --</option>
               <option v-for="quiz in quizzes" :key="quiz.id" :value="quiz.id">
                 {{ quiz.data.title }}
+              </option>
+            </select>
+          </div>
+          <div v-if="element.type === 'buchcover'" class="flex flex-col">
+            <label class="text-xs text-gray-700">Buchcover auswählen:</label>
+            <select
+              v-model="element.coverIds"
+              multiple
+              class="w-full rounded-md border-gray-300 text-sm shadow-sm mt-1 focus:border-indigo-500 focus:ring-indigo-500"
+            >
+              <option
+                v-for="cover in coverSelections"
+                :key="cover.id"
+                :value="cover.id"
+              >
+                {{ cover.data.title }}
               </option>
             </select>
           </div>
@@ -77,10 +93,7 @@
             <label class="block text-xs font-medium text-gray-700">
               Bild (optional):
             </label>
-            <div
-              v-if="element.imageUrl"
-              class="mt-1 w-24 h-24 border rounded"
-            >
+            <div v-if="element.imageUrl" class="mt-1 w-24 h-24 border rounded">
               <img
                 :src="element.imageUrl"
                 alt="Slot Bild"
@@ -90,10 +103,7 @@
             <input
               type="file"
               @change="uploadSlotImage($event, index)"
-              class="mt-1 text-xs text-gray-500
-                     file:mr-2 file:rounded-md file:border-0 file:bg-indigo-600
-                     file:py-1 file:px-3 file:text-xs file:font-semibold file:text-white
-                     hover:file:bg-indigo-500"
+              class="mt-1 text-xs text-gray-500 file:mr-2 file:rounded-md file:border-0 file:bg-indigo-600 file:py-1 file:px-3 file:text-xs file:font-semibold file:text-white hover:file:bg-indigo-500"
             />
           </div>
         </div>
@@ -104,8 +114,7 @@
     <div class="mt-6 flex justify-center">
       <button
         @click="saveSlots"
-        class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold
-               text-white shadow-sm hover:bg-indigo-500"
+        class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
       >
         Slots speichern
       </button>
@@ -140,13 +149,25 @@ const db = useFirestore();
 const firebaseApp = useFirebaseApp();
 const storage = getStorage(firebaseApp);
 
+// Reactive Variable für CoverSelections
+const coverSelections = ref<Array<{ id: string; data: any }>>([]);
+
+// Funktion, um CoverSelections aus Firestore zu laden
+async function loadCoverSelections() {
+  const coverSnap = await getDocs(collection(db, "coverSelections"));
+  coverSnap.forEach((docSnap) => {
+    coverSelections.value.push({ id: docSnap.id, data: docSnap.data() });
+  });
+}
+
 // ---- SlotItem interface ----
 interface SlotItem {
   displayName: string; // e.g. "Lehrerquiz"
-  title: string;       // internal label
-  type: "" | "quiz";   // only quiz for now
-  dataId?: string;     // single doc ID for the quiz
+  title: string; // internal label
+  type: "" | "quiz" | "buchcover" | "newsletter" | "marken" | "feedback"; // only quiz for now
+  dataId?: string; // single doc ID for the quiz
   imageUrl?: string;
+  coverIds?: string[];
 }
 
 // The draggable slots array
@@ -162,20 +183,35 @@ function itemKey(item: SlotItem) {
   return (item.title || "slot") + ":" + (item.dataId || "");
 }
 
-/** 
+/**
  * onMounted -> Load Firestore data & quiz docs
  */
 onMounted(async () => {
   await loadSlots();
   await loadQuizzes();
+  await loadCoverSelections();
 });
 
-/** 
+// Alle eindeutigen Typen aus den geladenen Slots extrahieren
+const uniqueSlotTypes = computed(() => {
+  const types = slots.value.map((s) => s.type);
+  const uniqueTypes = Array.from(new Set(types));
+  // Stelle sicher, dass auch ein Platzhalter vorhanden ist
+  return [{ value: "", label: "-- Bitte wählen --" }].concat(
+    uniqueTypes.map((t) => ({
+      value: t,
+      label: t.charAt(0).toUpperCase() + t.slice(1),
+    }))
+  );
+});
+
+/**
  * Load or init the "homeSlots" doc
  */
 async function loadSlots() {
   const docRef = doc(db, "config", "homeSlots");
   const snap = await getDoc(docRef);
+  debugger;
 
   if (snap.exists()) {
     const loadedSlots = snap.data().slots as SlotItem[];
@@ -198,7 +234,7 @@ async function loadSlots() {
   }
 }
 
-/** 
+/**
  * Draggable => rename slots if desired
  */
 function onDragEnd() {
@@ -207,7 +243,7 @@ function onDragEnd() {
   });
 }
 
-/** 
+/**
  * Save to Firestore
  */
 async function saveSlots() {
@@ -220,7 +256,7 @@ async function saveSlots() {
   alert("Slots gespeichert!");
 }
 
-/** 
+/**
  * Upload slot image
  */
 async function uploadSlotImage(event: Event, index: number) {
@@ -239,7 +275,7 @@ async function uploadSlotImage(event: Event, index: number) {
   }
 }
 
-/** 
+/**
  * Load quizzes for the dropdown
  */
 async function loadQuizzes() {
@@ -253,7 +289,14 @@ async function loadQuizzes() {
  * If slot type changes, reset data that doesn't apply
  */
 function resetSlotData(slot: SlotItem) {
-  slot.dataId = "";
+  // Wenn der Slot nicht vom Typ "quiz" ist, leere dataId
+  if (slot.type !== "quiz") {
+    slot.dataId = "";
+  }
+  // Wenn der Slot nicht vom Typ "buchcover" ist, leere coverIds
+  if (slot.type !== "buchcover") {
+    slot.coverIds = [];
+  }
 }
 </script>
 

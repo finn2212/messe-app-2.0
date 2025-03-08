@@ -114,7 +114,7 @@ function handleClick(slot: HomeSlot) {
       navigateTo("/marken");
       break;
     case "buchcover":
-      navigateTo(`/buchcover/${slot.dataId}`);
+      navigateTo("/buchcover");
       break;
     case "feedback":
       navigateTo("/feedback");
