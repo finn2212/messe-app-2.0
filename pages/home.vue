@@ -122,6 +122,9 @@ function handleClick(slot: HomeSlot) {
     case "newsletter":
       navigateTo("/newsletter");
       break;
+    case "jugendwort":
+      navigateTo("/jugendwort");
+      break;
     default:
       alert("Slot-Typ nicht definiert");
   }

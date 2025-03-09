@@ -82,7 +82,8 @@
                 type="email"
                 placeholder="E-Mail"
                 required
-                @focus="showKeyboard(email)"
+                @focus="showKeyboard('email')"
+                @click.stop
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
               />
 
@@ -112,42 +113,13 @@
     </Transition>
   </div>
   <!-- Bildschirmtastatur -->
-  <div
+  <Keyboard
     v-if="keyboardVisible"
-    class="fixed bottom-0 left-0 w-full bg-gray-200 p-4 shadow-lg"
-  >
-    <div class="grid grid-cols-10 gap-2 text-center">
-      <button
-        v-for="key in keys"
-        :key="key"
-        class="p-2 bg-white border rounded"
-        @click="addKey(key)"
-      >
-        {{ key }}
-      </button>
-      <button
-        v-if="activeField === 'email'"
-        v-for="key in emailShortcuts"
-        :key="key"
-        class="p-2 bg-blue-500 text-white border rounded"
-        @click="addKey(key)"
-      >
-        {{ key }}
-      </button>
-      <button
-        class="p-2 col-span-2 bg-red-500 text-white border rounded"
-        @click="removeKey"
-      >
-        ⌫
-      </button>
-      <button
-        class="p-2 col-span-2 bg-green-500 text-white border rounded"
-        @click="keyboardVisible = false"
-      >
-        ✔
-      </button>
-    </div>
-  </div>
+    :activeField="activeField"
+    @key-press="addKey"
+    @remove-key="removeKey"
+    @close="keyboardVisible = false"
+  />
 </template>
 
 <script setup lang="ts">
@@ -156,6 +128,7 @@ import { useFirestore } from "#imports";
 import { doc, getDoc, collection, addDoc } from "firebase/firestore";
 import GridCards from "~/components/GridCards.vue";
 import Spinner from "~/components/Spinner.vue";
+import Keyboard from "~/components/Keyboard.vue";
 
 const db = useFirestore();
 const appSettings = ref<any>(null);
@@ -163,12 +136,7 @@ const appSettingsLoaded = ref(false);
 const imagesLoaded = ref(false);
 const selectedTopic = ref<string | null>(null);
 const selectedTopicLogo = ref<string>("");
-const name = ref("");
-const firstName = ref("");
 const email = ref("");
-const consent = ref(false);
-const keyboardVisible = ref(false);
-const activeField = ref(null);
 const isSubmitting = ref(false);
 const successMessage = ref(false);
 const errorMessage = ref(false);
@@ -180,56 +148,8 @@ const form = ref({
   LERNINTERESSIERTE: false,
   LEHRER: false,
 });
-
-const keys = [
-  "1",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "0",
-  "Q",
-  "W",
-  "E",
-  "R",
-  "T",
-  "Z",
-  "U",
-  "I",
-  "O",
-  "P",
-  "Ü",
-  "A",
-  "S",
-  "D",
-  "F",
-  "G",
-  "H",
-  "J",
-  "K",
-  "L",
-  "Ö",
-  "Ä",
-  "Y",
-  "X",
-  "C",
-  "V",
-  "B",
-  "N",
-  "M",
-];
-const emailShortcuts = [
-  "@",
-  ".com",
-  ".de",
-  "@gmail.com",
-  "@yahoo.com",
-  "@outlook.com",
-];
+const keyboardVisible = ref(false);
+const activeField = ref<string | null>(null);
 
 onMounted(async () => {
   await loadAppSettings();
@@ -306,18 +226,6 @@ function selectTopic(item: any, index?: number) {
   form.value.LEHRER = index === 2;
 }
 
-function showKeyboard(field: any) {
-  activeField.value = field;
-  keyboardVisible.value = true;
-}
-
-function addKey(key: any) {
-  if (activeField.value === "email") form.value.EMAIL += key;
-}
-
-function removeKey() {
-  if (activeField.value === "email") form.value.EMAIL = form.value.EMAIL.slice(0, -1);
-}
 async function submitForm() {
   successMessage.value = false;
   errorMessage.value = false;
@@ -343,9 +251,48 @@ async function submitForm() {
 
     successMessage.value = true;
     isSubmitting.value = false;
+    form.value.EMAIL = "";
   } catch (err) {
     errorMessage.value = true;
     isSubmitting.value = false;
   }
 }
+
+// Beispiel: Funktion, um die Tastatur anzuzeigen
+function showKeyboard(field: string) {
+  activeField.value = field;
+  keyboardVisible.value = true;
+}
+
+// Beispiel-Funktionen, die auf Keyboard-Events reagieren:
+function addKey(key: string) {
+  if (activeField.value === "email") {
+    form.value.EMAIL += key;
+  }
+}
+
+function removeKey() {
+  if (activeField.value === "email") {
+    form.value.EMAIL = form.value.EMAIL.slice(0, -1);
+  }
+}
+
+// Optional: Klick außerhalb des Keyboards, um es zu schließen
+function handleDocumentClick(e: MouseEvent) {
+  const keyboardEl = document.querySelector(".keyboard-container");
+  if (
+    keyboardVisible.value &&
+    keyboardEl &&
+    !keyboardEl.contains(e.target as Node)
+  ) {
+    keyboardVisible.value = false;
+  }
+}
+
+onMounted(() => {
+  document.addEventListener("click", handleDocumentClick);
+});
+onUnmounted(() => {
+  document.removeEventListener("click", handleDocumentClick);
+});
 </script>

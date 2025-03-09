@@ -1,25 +1,42 @@
 <template>
   <!-- Spinner while appSettings are loading -->
-  <div v-if="!appSettingsLoaded" class="flex items-center justify-center min-h-screen">
-   <Spinner></Spinner>
+  <div
+    v-if="!appSettingsLoaded"
+    class="flex items-center justify-center min-h-screen"
+  >
+    <Spinner />
   </div>
 
   <!-- Main feedback container -->
   <div v-else class="p-4 flex flex-col items-center justify-center">
-    <h1 class="text-2xl font-bold text-center mb-6">Welche wünsche hast du an uns?</h1>
+    <h1 class="text-2xl font-bold text-center mb-6">
+      Welche wünsche hast du an uns?
+    </h1>
 
     <!-- If user hasn't selected a brand yet, show the brand grid -->
     <TransitionGroup v-if="!selectedBrand" tag="div" class="w-full" name="fade">
-      <GridCards :items="brandOptions" :onCardClick="selectBrand" :gridColumns="3" :imageWidth="256" :imageHeight="384">
+      <GridCards
+        :items="brandOptions"
+        :onCardClick="selectBrand"
+        :gridColumns="3"
+        :imageWidth="256"
+        :imageHeight="384"
+      >
         <template #cardContent="{ item }">
-          <div class="h-96 w-64 relative flex items-center justify-center transition-all duration-200 cursor-pointer hover:scale-105">
+          <div
+            class="h-96 w-64 relative flex items-center justify-center transition-all duration-200 cursor-pointer hover:scale-105"
+            @click="selectBrand(item)"
+          >
             <img
               v-if="item.logoUrl"
               :src="item.logoUrl"
               class="absolute inset-0 w-full h-full object-cover rounded-lg"
               :alt="item.name"
             />
-            <p v-else class="font-medium text-center px-2 absolute inset-0 flex items-center justify-center bg-gray-200">
+            <p
+              v-else
+              class="font-medium text-center px-2 absolute inset-0 flex items-center justify-center bg-gray-200"
+            >
               {{ item.name }}
             </p>
           </div>
@@ -29,21 +46,28 @@
 
     <!-- Once a brand is selected, show the feedback form with animation -->
     <Transition name="slide">
-      <div v-if="selectedBrand" class="flex flex-col lg:flex-row items-center justify-center w-full max-w-4xl">
+      <div
+        v-if="selectedBrand"
+        class="flex flex-col lg:flex-row items-center justify-center w-full max-w-4xl"
+      >
         <!-- Feedback Form on the Left -->
         <div class="w-full lg:w-1/2 p-4">
           <h2 class="text-xl font-semibold mb-4 text-center lg:text-left">
             Was willst du uns zu {{ selectedBrand }} sagen?
           </h2>
           <form @submit.prevent="submitFeedback" class="space-y-4">
-            <!-- Feedback Text -->
+            <!-- Feedback Textarea -->
             <div>
-              <label class="block text-sm font-medium text-gray-700">Dein Feedback</label>
+              <label class="block text-sm font-medium text-gray-700"
+                >Dein Feedback</label
+              >
               <textarea
                 v-model="feedbackMessage"
                 rows="4"
                 required
-                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                @focus="showKeyboard('feedback')"
+                @click.stop
+                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               ></textarea>
             </div>
 
@@ -61,50 +85,50 @@
 
         <!-- Selected Image on the Right -->
         <div class="w-full lg:w-1/2 p-4 flex items-center justify-center">
-          <img :src="selectedBrandLogo" class="h-96 w-64 rounded-lg object-cover transition-transform duration-700 transform translate-x-10 opacity-100" />
+          <img
+            :src="selectedBrandLogo"
+            class="h-96 w-64 rounded-lg object-cover transition-transform duration-700 transform translate-x-10 opacity-100"
+          />
         </div>
       </div>
     </Transition>
   </div>
+
+  <!-- Externe Bildschirmtastatur -->
+  <Keyboard
+    v-if="keyboardVisible"
+    :activeField="activeField"
+    @key-press="handleKeyPress"
+    @remove-key="handleRemoveKey"
+    @close="keyboardVisible = false"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed } from "vue";
+import { navigateTo } from "#app";
 import { useFirestore } from "#imports";
 import { doc, getDoc, collection, addDoc } from "firebase/firestore";
 import GridCards from "~/components/GridCards.vue";
 import Spinner from "~/components/Spinner.vue";
+import Keyboard from "~/components/Keyboard.vue";
 
-// Access Firestore
 const db = useFirestore();
 
-// Reactive states
+// App Settings und Brand Auswahl
 const appSettings = ref<any>(null);
 const appSettingsLoaded = ref(false);
-
-// Brand selection
 const selectedBrand = ref<string | null>(null);
 const selectedBrandLogo = ref<string>("");
 
-// Feedback form fields
+// Feedback Formular
 const feedbackMessage = ref("");
 
-// 1. Load brand logos (PONS, Langenscheidt, Klett) from Firestore
-onMounted(async () => {
-  try {
-    const docRef = doc(db, "config", "appSettings");
-    const snap = await getDoc(docRef);
-    if (snap.exists()) {
-      appSettings.value = snap.data();
-    }
-  } catch (err) {
-    console.error("Error loading appSettings:", err);
-  } finally {
-    appSettingsLoaded.value = true;
-  }
-});
+// Zustand für die Tastatur
+const keyboardVisible = ref(false);
+const activeField = ref<string | null>(null);
 
-// 2. Prepare items for our brand grid
+// Newsletter Options (Brand Auswahl)
 const brandOptions = computed(() => {
   if (!appSettings.value) return [];
   return [
@@ -123,13 +147,52 @@ const brandOptions = computed(() => {
   ];
 });
 
-// 3. Handle brand selection
+// Laden der App Settings
+onMounted(async () => {
+  await loadAppSettings();
+  preloadImages();
+});
+
+async function loadAppSettings() {
+  try {
+    const docRef = doc(db, "config", "appSettings");
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      appSettings.value = snap.data();
+    }
+  } catch (err) {
+    console.error("Error loading appSettings:", err);
+  } finally {
+    appSettingsLoaded.value = true;
+  }
+}
+
+async function preloadImages() {
+  // Hier laden wir die Bilder aus newsletterOptions
+  const images = brandOptions.value
+    .map((item) => item.logoUrl)
+    .filter((url) => url);
+  if (images.length === 0) return;
+  let loadedCount = 0;
+  images.forEach((src) => {
+    const img = new Image();
+    img.src = src;
+    img.onload = img.onerror = () => {
+      loadedCount++;
+      if (loadedCount === images.length) {
+        // Optionale Logik, wenn alle Bilder geladen sind
+      }
+    };
+  });
+}
+
+// Brand Auswahl
 function selectBrand(item: any) {
   selectedBrand.value = item.name;
   selectedBrandLogo.value = item.logoUrl;
 }
 
-// 4. Submit feedback to Firestore
+// Feedback abschicken
 async function submitFeedback() {
   try {
     await addDoc(collection(db, "feedback"), {
@@ -137,31 +200,67 @@ async function submitFeedback() {
       message: feedbackMessage.value,
       timestamp: Date.now(),
     });
-
     alert("Vielen Dank für dein Feedback!");
-
-    // Reset everything
+    // Zurücksetzen
     selectedBrand.value = null;
     selectedBrandLogo.value = "";
     feedbackMessage.value = "";
+    navigateTo("/newsletter");
   } catch (error) {
     console.error("Error submitting feedback:", error);
     alert("Es gab einen Fehler beim Absenden des Feedbacks.");
   }
 }
+
+// Tastatur-Funktionen
+function showKeyboard(field: string) {
+  activeField.value = field;
+  keyboardVisible.value = true;
+}
+
+function handleKeyPress(key: string) {
+  if (activeField.value === "feedback") {
+    feedbackMessage.value += key;
+  }
+}
+
+function handleRemoveKey() {
+  if (activeField.value === "feedback") {
+    feedbackMessage.value = feedbackMessage.value.slice(0, -1);
+  }
+}
+
+// Schließt die Tastatur, wenn außerhalb geklickt wird
+function handleDocumentClick(e: MouseEvent) {
+  const keyboardEl = document.querySelector(".keyboard-container");
+  if (
+    keyboardVisible.value &&
+    keyboardEl &&
+    !keyboardEl.contains(e.target as Node)
+  ) {
+    keyboardVisible.value = false;
+  }
+}
+
+onMounted(() => {
+  document.addEventListener("click", handleDocumentClick);
+});
+onUnmounted(() => {
+  document.removeEventListener("click", handleDocumentClick);
+});
 </script>
 
 <style scoped>
-/* Fade Transition for Brand Grid */
+/* Transition Styles (wie in deinem Beispiel) */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.5s ease;
 }
-.fade-enter, .fade-leave-to {
+.fade-enter,
+.fade-leave-to {
   opacity: 0;
 }
 
-/* Slide Transition for Form */
 .slide-enter-active {
   transition: transform 0.5s ease, opacity 0.5s ease;
 }

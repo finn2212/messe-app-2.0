@@ -82,9 +82,7 @@
               ? 'text-indigo-600 border-b-2 border-indigo-600'
               : 'text-gray-600 hover:text-gray-900',
           ]"
-        >
-          Alle Quizzes
-        </button>
+        ></button>
       </nav>
     </div>
 

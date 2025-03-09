@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1 class="text-base font-semibold text-gray-900 mb-4">
-      Slots konfigurieren
+      Kacheln konfigurieren
     </h1>
 
     <!-- Draggable Grid with 3 columns -->
@@ -19,7 +19,7 @@
           <!-- Slot Index & Display Name -->
           <div class="flex items-center justify-between">
             <h2 class="font-semibold text-sm text-gray-700">
-              Slot # {{ index + 1 }}
+              Kachel # {{ index + 1 }}
             </h2>
             <input
               v-model="element.displayName"
@@ -42,14 +42,14 @@
 
           <!-- Slot Type (currently only "quiz") -->
           <div class="flex flex-col">
-            <label class="text-sm font-medium text-gray-700">Slot-Typ:</label>
+            <label class="text-sm font-medium text-gray-700">Kachel-Typ:</label>
             <select
               v-model="element.type"
               @change="resetSlotData(element)"
               class="rounded-md border-gray-300 text-sm shadow-sm mt-1 focus:border-indigo-500 focus:ring-indigo-500"
             >
               <option
-                v-for="type in uniqueSlotTypes"
+                v-for="type in slotTypes"
                 :key="type.value"
                 :value="type.value"
               >
@@ -148,6 +148,7 @@ definePageMeta({ layout: "admin" });
 const db = useFirestore();
 const firebaseApp = useFirebaseApp();
 const storage = getStorage(firebaseApp);
+const slotTypes = ref<Array<{ value: string; label: string }>>([]);
 
 // Reactive Variable für CoverSelections
 const coverSelections = ref<Array<{ id: string; data: any }>>([]);
@@ -164,7 +165,14 @@ async function loadCoverSelections() {
 interface SlotItem {
   displayName: string; // e.g. "Lehrerquiz"
   title: string; // internal label
-  type: "" | "quiz" | "buchcover" | "newsletter" | "marken" | "feedback"; // only quiz for now
+  type:
+    | ""
+    | "quiz"
+    | "buchcover"
+    | "newsletter"
+    | "marken"
+    | "feedback"
+    | "jugendwort"; // only quiz for now
   dataId?: string; // single doc ID for the quiz
   imageUrl?: string;
   coverIds?: string[];
@@ -190,28 +198,29 @@ onMounted(async () => {
   await loadSlots();
   await loadQuizzes();
   await loadCoverSelections();
+  await loadSlotTypes();
 });
 
-// Alle eindeutigen Typen aus den geladenen Slots extrahieren
-const uniqueSlotTypes = computed(() => {
-  const types = slots.value.map((s) => s.type);
-  const uniqueTypes = Array.from(new Set(types));
-  // Stelle sicher, dass auch ein Platzhalter vorhanden ist
-  return [{ value: "", label: "-- Bitte wählen --" }].concat(
-    uniqueTypes.map((t) => ({
-      value: t,
-      label: t.charAt(0).toUpperCase() + t.slice(1),
-    }))
-  );
-});
-
+async function loadSlotTypes() {
+  const docRef = doc(db, "config", "slotTypes");
+  const snap = await getDoc(docRef);
+  if (snap.exists()) {
+    const configData = snap.data();
+    // Konvertiere das Objekt in ein Array von { value, label } Objekten.
+    slotTypes.value = Object.entries(configData).map(([key, label]) => ({
+      value: key,
+      label: label as string,
+    }));
+  } else {
+    slotTypes.value = [];
+  }
+}
 /**
  * Load or init the "homeSlots" doc
  */
 async function loadSlots() {
   const docRef = doc(db, "config", "homeSlots");
   const snap = await getDoc(docRef);
-  debugger;
 
   if (snap.exists()) {
     const loadedSlots = snap.data().slots as SlotItem[];

@@ -181,12 +181,14 @@ import {
   CalendarIcon,
   ChartBarIcon,
   QuestionMarkCircleIcon,
+  UserGroupIcon,
+  MegaphoneIcon
 } from "@heroicons/vue/24/outline";
 
 // Du kannst gerne unterschiedliche Heroicons importieren, z.B. Cog6ToothIcon
 // oder TrashIcon etc. - Hier nur als Beispiel
 const navigation = [
-  { name: "App Aufbau", href: "/admin/slots", icon: FolderIcon },
+  { name: "Kachel Konfiguration", href: "/admin/slots", icon: FolderIcon },
   { name: "Quizzes", href: "/admin/quizzes", icon: QuestionMarkCircleIcon },
   {
     name: "Makern Eigenschaften",
@@ -198,7 +200,8 @@ const navigation = [
     href: "/admin/cover-selections",
     icon: BookOpenIcon,
   },
-  { name: "Marken Feedback", href: "/admin/feedback", icon: ChartBarIcon },
+  { name: "Marken Feedback", href: "/admin/feedback", icon: MegaphoneIcon },
+  { name: "Jugendwort", href: "/admin/jugendwort", icon: UserGroupIcon },
   { name: "Messe Termine", href: "/admin/messen", icon: CalendarIcon },
   { name: "Analysien", href: "/admin/stats", icon: ChartBarIcon },
   {
