@@ -232,28 +232,25 @@ async function submitForm() {
   isSubmitting.value = true;
 
   try {
-    const { data, error } = await useFetch(
-      "https://www.pons.de/newsletter/subscribe.php",
-      {
-        method: "POST",
-        body: new URLSearchParams({
-          EMAIL: form.value.EMAIL,
-          LIST: form.value.LIST,
-          BRAND: form.value.BRAND,
-          SPRACHINTERESSIERTE: form.value.SPRACHINTERESSIERTE ? "1" : "",
-          LERNINTERESSIERTE: form.value.LERNINTERESSIERTE ? "1" : "",
-          LEHRER: form.value.LEHRER ? "1" : "",
-        }),
-      }
-    );
+    const { data, error } = await useFetch("/api/subscribe", {
+      method: "POST",
+      body: {
+        EMAIL: form.value.EMAIL,
+        LIST: form.value.LIST,
+        BRAND: form.value.BRAND,
+        SPRACHINTERESSIERTE: form.value.SPRACHINTERESSIERTE ? "1" : "",
+        LERNINTERESSIERTE: form.value.LERNINTERESSIERTE ? "1" : "",
+        LEHRER: form.value.LEHRER ? "1" : "",
+      },
+    });
 
     if (error.value) throw new Error();
 
     successMessage.value = true;
-    isSubmitting.value = false;
     form.value.EMAIL = "";
   } catch (err) {
     errorMessage.value = true;
+  } finally {
     isSubmitting.value = false;
   }
 }
