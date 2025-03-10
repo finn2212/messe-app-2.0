@@ -59,4 +59,24 @@ export default defineNuxtConfig({
       ],
     },
   },
+  vite: {
+    resolve: {
+      alias: {
+        // Ersetze den Node-Builtin "util" durch das npm-Paket "util"
+        "node:util": "util"
+      }
+    },
+    optimizeDeps: {
+      esbuildOptions: {
+        // Polyfills für Node Globals (process, Buffer, etc.)
+        plugins: [
+          require("@esbuild-plugins/node-globals-polyfill").NodeGlobalsPolyfillPlugin({
+            process: true,
+            buffer: true,
+          }),
+          require("@esbuild-plugins/node-modules-polyfill").NodeModulesPolyfillPlugin()
+        ]
+      }
+    }
+  }
 });

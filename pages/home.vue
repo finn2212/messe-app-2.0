@@ -45,11 +45,16 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  middleware: ['authenticated-server']
+});
+  
 import { ref, onMounted } from "vue";
 import { doc, getDoc, serverTimestamp } from "firebase/firestore";
 import { navigateTo } from "#app";
 import GridCards from "~/components/GridCards.vue";
 import Spinner from "~/components/Spinner.vue";
+
 
 const db = useFirestore();
 

@@ -97,7 +97,7 @@ import {
   getDoc,
   collection,
   getDocs,
-  DocumentData,
+  type DocumentData,
 } from "firebase/firestore";
 
 interface Option {
@@ -241,10 +241,14 @@ async function fetchQuizAndAnswers(quizId: string) {
 // ---------------------------------
 // Helper: Check if an answer is correct
 // ---------------------------------
-function isCorrectAnswer(questionText: string, answerText: string): boolean {
+function isCorrectAnswer(
+  questionInput: string | number,
+  answerInput: string | number
+): boolean {
+  const questionText = questionInput.toString();
+  const answerText = answerInput.toString();
   const questionObj = questions.value.find((q) => q.question === questionText);
   if (!questionObj) return false;
-
   const matchedOption = questionObj.options.find(
     (opt) => opt.text === answerText
   );
@@ -252,19 +256,19 @@ function isCorrectAnswer(questionText: string, answerText: string): boolean {
 }
 
 // Return the question image
-function getQuestionImageUrl(questionText: string): string | null {
+function getQuestionImageUrl(questionText: string | number): string | null {
   const questionObj = questions.value.find((q) => q.question === questionText);
   return questionObj?.questionImageUrl || null;
 }
 
-// Return the option image if any
 function getOptionImageUrl(
-  questionText: string,
-  answerText: string
+  questionInput: string | number,
+  answerInput: string | number
 ): string | null {
+  const questionText = questionInput.toString();
+  const answerText = answerInput.toString();
   const questionObj = questions.value.find((q) => q.question === questionText);
   if (!questionObj) return null;
-
   const matchedOption = questionObj.options.find(
     (opt) => opt.text === answerText
   );

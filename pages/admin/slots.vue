@@ -140,9 +140,10 @@ import {
   uploadBytes,
   getDownloadURL,
 } from "firebase/storage";
-
-// This page layout is for your admin
-definePageMeta({ layout: "admin" });
+definePageMeta({
+  middleware: ['authenticated'],
+  layout: "admin"
+});
 
 // Firestore & Storage
 const db = useFirestore();
