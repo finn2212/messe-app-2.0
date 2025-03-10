@@ -45,16 +45,13 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({
-  middleware: ['authenticated-server']
-});
-  
 import { ref, onMounted } from "vue";
 import { doc, getDoc, serverTimestamp } from "firebase/firestore";
 import { navigateTo } from "#app";
 import GridCards from "~/components/GridCards.vue";
 import Spinner from "~/components/Spinner.vue";
-
+import { useNuxtApp } from "#app";
+import { useRouter } from "vue-router";
 
 const db = useFirestore();
 
@@ -67,8 +64,17 @@ interface HomeSlot {
 
 const slots = ref<HomeSlot[]>([]);
 const itemsLoaded = ref(false);
+const router = useRouter();
 
 onMounted(async () => {
+  const { $supabase } = useNuxtApp();
+  const {
+    data: { session },
+  } = await $supabase.auth.getSession();
+
+  if (!session) {
+    router.push("/");
+  }
   // 1) Fetch Firestore data
   const docRef = doc(db, "config", "homeSlots");
   const snap = await getDoc(docRef);

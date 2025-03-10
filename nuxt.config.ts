@@ -8,6 +8,9 @@ export default defineNuxtConfig({
     "nuxt-headlessui",
     "@vite-pwa/nuxt",
   ],
+  plugins: [
+    { src: "~/plugins/supabase.js", mode: "client" },
+  ],
   vuefire: {
     config: {
       apiKey: "AIzaSyDwAqoQhZfHuENatg36PJA2LFgcBHSu-GM",

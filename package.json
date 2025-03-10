@@ -14,9 +14,10 @@
     "@heroicons/vue": "^2.2.0",
     "@nuxtjs/tailwindcss": "6.13.1",
     "@pinia/nuxt": "^0.10.1",
+    "@supabase/supabase-js": "^2.49.1",
     "chart.js": "^4.4.7",
     "firebase": "^10.12.3",
-    "firebase-admin": "^12.2.0",
+
     "firebase-functions": "^5.0.1",
     "jose": "^6.0.8",
     "jsonwebtoken": "^8.5.1",
