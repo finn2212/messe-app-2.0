@@ -202,6 +202,7 @@ const navigation = [
   },
   { name: "Marken Feedback", href: "/admin/feedback", icon: MegaphoneIcon },
   { name: "Jugendwort", href: "/admin/jugendwort", icon: UserGroupIcon },
+  { name: "Shop", href: "/admin/shop", icon: UserGroupIcon },
   { name: "Messe Termine", href: "/admin/messen", icon: CalendarIcon },
   { name: "Analysien", href: "/admin/stats", icon: ChartBarIcon },
   {

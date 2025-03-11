@@ -141,7 +141,6 @@ import {
   getDownloadURL,
 } from "firebase/storage";
 definePageMeta({
-  middleware: ['authenticated'],
   layout: "admin"
 });
 
@@ -173,7 +172,8 @@ interface SlotItem {
     | "newsletter"
     | "marken"
     | "feedback"
-    | "jugendwort"; // only quiz for now
+    | "jugendwort"
+    | "shop"; 
   dataId?: string; // single doc ID for the quiz
   imageUrl?: string;
   coverIds?: string[];
