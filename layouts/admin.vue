@@ -204,7 +204,7 @@ const navigation = [
   { name: "Jugendwort", href: "/admin/jugendwort", icon: UserGroupIcon },
   { name: "Shop", href: "/admin/shop", icon: UserGroupIcon },
   { name: "Messe Termine", href: "/admin/messen", icon: CalendarIcon },
-  { name: "Analysien", href: "/admin/stats", icon: ChartBarIcon },
+  { name: "Analyse", href: "/admin/stats", icon: ChartBarIcon },
   {
     name: "App Einstellungen",
     href: "/admin/app-settings",
