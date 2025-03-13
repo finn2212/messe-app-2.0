@@ -24,8 +24,8 @@
         </button>
       </nav>
       <button @click="setIsOpen(true)"
-        class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
-        Neue Slot Page
+        class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 mb-4">
+      Neue Seite
       </button>
       <Modal :isOpen="isOpen" @close="setIsOpen(false)" title="Neue Slot Page" @save="handleSlotPageSave">
         <div class="py-4">
