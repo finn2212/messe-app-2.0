@@ -49,7 +49,7 @@
       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
     >
       <!-- Exactly one root <div> for each slot item -->
-      <template #item="{ element, index }">
+      <template #item="{ element, index }" :key="index">
         <div
           class="group relative flex flex-col gap-2 cursor-grab border border-gray-200 p-4 hover:bg-gray-50 focus:outline-none rounded-md"
         >
@@ -238,6 +238,7 @@ const slotPageFormData = ref<SlotPage>({
 
 // The draggable slots array
 const slots = ref<SlotItem[]>([]);
+const allSlots = ref<SlotItem[]>([]);
 
 // Quizzes from Firestore
 const quizzes = ref<Array<{ id: string; data: any }>>([]);
@@ -322,9 +323,14 @@ const handleSlotPageSave = async () => {
     const snap = await getDoc(docRef);
     if (snap.exists()) {
       const loadedSlots = snap.data().slots as SlotItem[];
+      // Ensure imageUrl is defined
+      loadedSlots.forEach((s) => {
+        if (!s.imageUrl) s.imageUrl = "";
+      });
       await updateDoc(docRef, { slots: [...loadedSlots, ...newSlots] });
     } else {
       await setDoc(docRef, { slots: newSlots });
+      allSlots.value = newSlots;
     }
     slots.value = newSlots;
     cancelEditPage();
@@ -343,14 +349,15 @@ const deleteSlotPage = async (id: string | null) => {
   if (!id) return;
   const docRef = doc(db, "slotPages", id);
   await deleteDoc(docRef);
-  await fetchSlotPages().then(() => {
-    const newSlots = slots.value.filter(s => s.slotPageId !== id);
-    slots.value = newSlots;
+  fetchSlotPages().then(() => {
+    const newSlots = allSlots.value.filter(s => s.slotPageId !== id);
     setDoc(doc(db, "config", "homeSlots"), { slots: newSlots });
     if (activeSlotPageId.value === id) {
       setActivePageId(slotPages.value[0].id);
+      loadSlots();
     }
   });
+  cancelEditPage();
 };
 
 async function loadSlotTypes() {
@@ -392,6 +399,8 @@ const createFewDefaultSlots = (count: number) => {
     loadedSlots.forEach((s) => {
       if (!s.imageUrl) s.imageUrl = "";
     });
+    
+    allSlots.value = loadedSlots;
     slots.value = loadedSlots.filter(s => s.slotPageId === activeSlotPageId.value);
   } else {
     // create default, e.g. 6 slots
@@ -415,10 +424,20 @@ function onDragEnd() {
  */
 async function saveSlots() {
   const docRef = doc(db, "config", "homeSlots");
+  const updatedSlots = [
+    ...slots.value.map(s => ({
+      ...s,
+      slotPageId: activeSlotPageId.value
+    })),
+    ...allSlots.value.filter(s => s.slotPageId !== activeSlotPageId.value).map(s => ({
+      ...s
+    }))
+  ];
+  
   try {
-    await updateDoc(docRef, { slots: slots.value });
+    await updateDoc(docRef, { slots: updatedSlots });
   } catch (err) {
-    await setDoc(docRef, { slots: slots.value });
+    await setDoc(docRef, { slots: updatedSlots });
   }
   alert("Slots gespeichert!");
 }
