@@ -2,9 +2,22 @@
   <div class="pt-20">
     <div v-if="itemsLoaded">
       <Transition name="fade">
-        <h1 class="text-2xl font-bold text-center mb-12">
-          Mach mit und sag uns Deine Meinung.
-        </h1>
+        <div>
+          <h1 class="text-2xl font-bold text-center">
+            Mach mit und sag uns Deine Meinung.
+          </h1>
+          <div class="flex items-center justify-between w-full mb-12 px-32">
+            <button type="button" @click.prevent="prevPage" :disabled="currentPageIndex === 0"
+              :class="`border rounded-lg border-slate-300 p-2 ${currentPageIndex === 0 ? 'opacity-50 bg-slate-100' : ''}`">
+              <ChevronDoubleLeftIcon class="w-6 h-6" />
+            </button>
+            <h2>{{ slotPages[currentPageIndex].name }}</h2>
+            <button type="button" @click.prevent="nextPage" :disabled="currentPageIndex === slotPages.length - 1"
+              :class="`border rounded-lg border-slate-300 p-2 ${currentPageIndex === slotPages.length - 1 ? 'opacity-50 bg-slate-100' : ''}`">
+              <ChevronDoubleRightIcon class="w-6 h-6" />
+            </button>
+          </div>
+        </div>
       </Transition>
       <!-- Only render <GridCards> if we have itemsLoaded = true -->
       <GridCards
@@ -46,12 +59,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { doc, getDoc, serverTimestamp } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { navigateTo } from "#app";
 import GridCards from "~/components/GridCards.vue";
 import Spinner from "~/components/Spinner.vue";
 import { useNuxtApp } from "#app";
 import { useRouter } from "vue-router";
+import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from "@heroicons/vue/24/outline";
 
 const db = useFirestore();
 
@@ -60,9 +74,18 @@ interface HomeSlot {
   type: string;
   dataId?: string;
   imageUrl?: string;
+  slotPageId: string;
+}
+
+interface SlotPage {
+  id: string;
+  name: string;
 }
 
 const slots = ref<HomeSlot[]>([]);
+const slotPages = ref<SlotPage[]>([]);
+const activeSlotPageId = ref<string | null>(null);
+const currentPageIndex = ref(0);
 const itemsLoaded = ref(false);
 const router = useRouter();
 
@@ -75,6 +98,22 @@ onMounted(async () => {
   if (!session) {
     router.push("/");
   }
+  const pageSnap = await getDocs(collection(db, "slotPages"));
+  slotPages.value = pageSnap.docs.map((docSnap) => {
+    const data = docSnap.data();
+    return {
+      id: docSnap.id,
+      name: data.name,
+    };
+  });
+  if (slotPages.value.length > 0) {
+    activeSlotPageId.value = slotPages.value[0].id;
+
+    await loadSlots();
+  }
+});
+
+const loadSlots = async () => {
   // 1) Fetch Firestore data
   const docRef = doc(db, "config", "homeSlots");
   const snap = await getDoc(docRef);
@@ -84,8 +123,8 @@ onMounted(async () => {
   }
 
   // 2) We have the data
-  const data = snap.data();
-  slots.value = data.slots || [];
+  const data = snap.data().slots as HomeSlot[];
+  slots.value = data.filter(s => s.slotPageId === activeSlotPageId.value) || [];
 
   function isString(value: string | undefined): value is string {
     return typeof value === "string";
@@ -100,7 +139,7 @@ onMounted(async () => {
 
   // 4) Now that images are preloaded, show <GridCards>
   itemsLoaded.value = true;
-});
+}
 
 // Preload each image with a Promise
 function preloadImages(urls: string[]) {
@@ -113,6 +152,23 @@ function preloadImages(urls: string[]) {
     });
   });
   return Promise.all(promises);
+}
+
+// Pagination controls
+function nextPage() {
+  if (currentPageIndex.value < slotPages.value.length - 1) {
+    currentPageIndex.value++;
+    activeSlotPageId.value = slotPages.value[currentPageIndex.value].id;
+    loadSlots();
+  }
+}
+
+function prevPage() {
+  if (currentPageIndex.value > 0) {
+    currentPageIndex.value--;
+    activeSlotPageId.value = slotPages.value[currentPageIndex.value].id;
+    loadSlots();
+  }
 }
 
 // Klick-Aktionen
