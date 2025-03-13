@@ -52,6 +52,15 @@ const backgroundStyle = computed(() => ({
 
 // Fetch the "appSettings" doc on mount
 onMounted(async () => {
+  const { $supabase } = useNuxtApp();
+  const {
+    data: { session },
+  } = await $supabase.auth.getSession();
+
+  if (!session) {
+    router.push("/");
+  }
+
   const cachedImage = localStorage.getItem("backgroundImageUrl");
   if (cachedImage) {
     backgroundImageUrl.value = cachedImage;
