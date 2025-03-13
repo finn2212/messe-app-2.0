@@ -25,7 +25,7 @@
         :onCardClick="(item) => handleClick(item as HomeSlot)"
       >
         <template #cardContent="{ item }">
-          <div class="md:h-40 lg:h-52 xl:h-60 md:w-56 lg:w-64 xl:w-96 relative">
+          <div class="w-full md:h-40 lg:h-52 xl:h-60 md:w-56 lg:w-64 xl:w-96 relative">
             <div v-if="item.imageUrl">
               <img
                 :src="item.imageUrl"

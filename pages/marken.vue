@@ -20,7 +20,7 @@
         :imageHeight="384"
       >
         <template #cardContent="{ item }">
-          <div class="h-96 w-64 relative flex items-center justify-center transition-all duration-200 cursor-pointer hover:scale-105">
+          <div class="w-full md:h-40 lg:h-52 xl:h-60 md:w-56 lg:w-64 xl:w-96 relative flex items-center justify-center transition-all duration-200 cursor-pointer hover:scale-105">
             <div v-if="item.brandImageUrl">
               <img :src="item.brandImageUrl" class="absolute inset-0 w-full h-full object-cover rounded-lg" :alt="item.brand" />
               <div class="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white bg-opacity-80 p-2 rounded-md text-center text-black font-semibold">
