@@ -299,17 +299,36 @@ function setActivePageId(pageId: string | null) {
 
 const handleSlotPageSave = async () => {  
   if (!slotPageFormData.value.name) return;
-  const payload = { ...slotPageFormData.value };
+  const payload = { name: slotPageFormData.value.name };
   if (slotPageFormData.value.id) {
     // Update existierendes Dok
     const docRef = doc(db, "slotPages", slotPageFormData.value.id);
     await updateDoc(docRef, payload);
+    await fetchSlotPages();
     cancelEditPage();
   } else {
-    // Neues Dokument anlegen
-    await addDoc(collection(db, "slotPages"), payload);
+    // create new doc  and get the doc reference
+    const docSlotPageRef = await addDoc(collection(db, "slotPages"), payload);
+
+    // add new page to slotPages
+    slotPages.value.push({ id: docSlotPageRef.id, name: payload.name });
+
+    // set active page id
+    setActivePageId(docSlotPageRef.id);
+
+    // create new slots
+    const newSlots = createFewDefaultSlots(6);
+    const docRef = doc(db, "config", "homeSlots");
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      const loadedSlots = snap.data().slots as SlotItem[];
+      await updateDoc(docRef, { slots: [...loadedSlots, ...newSlots] });
+    } else {
+      await setDoc(docRef, { slots: newSlots });
+    }
+    slots.value = newSlots;
+    cancelEditPage();
   }
-  await fetchSlotPages();
   setIsOpen(false);
 };
 
@@ -348,6 +367,18 @@ async function loadSlotTypes() {
     slotTypes.value = [];
   }
 }
+
+const createFewDefaultSlots = (count: number) => {
+  const defaultSlots: SlotItem[] = Array.from({ length: count }, (_, i) => ({
+    title: `Slot ${i + 1}`,
+    displayName: "",
+    type: "",
+    dataId: "",
+    imageUrl: "",
+    slotPageId: activeSlotPageId.value
+  }));
+  return defaultSlots;
+};
 /**
  * Load or init the "homeSlots" doc
  */
@@ -363,15 +394,8 @@ async function loadSlotTypes() {
     });
     slots.value = loadedSlots.filter(s => s.slotPageId === activeSlotPageId.value);
   } else {
-    // create default, e.g. 9 slots
-    const defaultSlots: SlotItem[] = Array.from({ length: 9 }, (_, i) => ({
-      title: `Slot ${i + 1}`,
-      displayName: "",
-      type: "",
-      dataId: "",
-      imageUrl: "",
-      slotPageId: activeSlotPageId.value
-    }));
+    // create default, e.g. 6 slots
+    const defaultSlots: SlotItem[] = createFewDefaultSlots(6);
     await setDoc(docRef, { slots: defaultSlots });
     slots.value = defaultSlots;
   }

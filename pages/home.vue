@@ -63,8 +63,6 @@ import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { navigateTo } from "#app";
 import GridCards from "~/components/GridCards.vue";
 import Spinner from "~/components/Spinner.vue";
-import { useNuxtApp } from "#app";
-import { useRouter } from "vue-router";
 import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from "@heroicons/vue/24/outline";
 
 const db = useFirestore();
@@ -87,17 +85,8 @@ const slotPages = ref<SlotPage[]>([]);
 const activeSlotPageId = ref<string | null>(null);
 const currentPageIndex = ref(0);
 const itemsLoaded = ref(false);
-const router = useRouter();
 
 onMounted(async () => {
-  const { $supabase } = useNuxtApp();
-  const {
-    data: { session },
-  } = await $supabase.auth.getSession();
-
-  if (!session) {
-    router.push("/");
-  }
   const pageSnap = await getDocs(collection(db, "slotPages"));
   slotPages.value = pageSnap.docs.map((docSnap) => {
     const data = docSnap.data();
