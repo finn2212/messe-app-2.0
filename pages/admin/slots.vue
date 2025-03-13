@@ -426,8 +426,7 @@ async function saveSlots() {
   const docRef = doc(db, "config", "homeSlots");
   const updatedSlots = [
     ...slots.value.map(s => ({
-      ...s,
-      slotPageId: activeSlotPageId.value
+      ...s
     })),
     ...allSlots.value.filter(s => s.slotPageId !== activeSlotPageId.value).map(s => ({
       ...s

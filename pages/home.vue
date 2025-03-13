@@ -6,15 +6,15 @@
           <h1 class="text-2xl font-bold text-center">
             Mach mit und sag uns Deine Meinung.
           </h1>
-          <div class="flex items-center justify-between w-full mb-12 px-32">
+          <div class="flex items-center justify-between w-full mb-12 md:px-12 lg:px-28 xl:32">
             <button type="button" @click.prevent="prevPage" :disabled="currentPageIndex === 0"
               :class="`border rounded-lg border-slate-300 p-2 ${currentPageIndex === 0 ? 'opacity-50 bg-slate-100' : ''}`">
-              <ChevronDoubleLeftIcon class="w-6 h-6" />
+              <ChevronDoubleLeftIcon class="md:w-5 md:h-5 lg:w-6 lg:h-6" />
             </button>
             <h2>{{ slotPages[currentPageIndex].name }}</h2>
             <button type="button" @click.prevent="nextPage" :disabled="currentPageIndex === slotPages.length - 1"
               :class="`border rounded-lg border-slate-300 p-2 ${currentPageIndex === slotPages.length - 1 ? 'opacity-50 bg-slate-100' : ''}`">
-              <ChevronDoubleRightIcon class="w-6 h-6" />
+              <ChevronDoubleRightIcon class="md:w-5 md:h-5 lg:w-6 lg:h-6" />
             </button>
           </div>
         </div>
@@ -25,7 +25,7 @@
         :onCardClick="(item) => handleClick(item as HomeSlot)"
       >
         <template #cardContent="{ item }">
-          <div class="h-60 w-96 relative">
+          <div class="md:h-40 lg:h-52 xl:h-60 md:w-56 lg:w-64 xl:w-96 relative">
             <div v-if="item.imageUrl">
               <img
                 :src="item.imageUrl"

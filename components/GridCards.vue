@@ -1,7 +1,7 @@
 <template>
   <client-only>
     <div class="flex items-center justify-center">
-      <ul role="list" :class="`grid grid-cols-1 gap-6 sm:grid-cols-3 md:grid-cols-${gridColumns}`">
+      <ul role="list" class="grid grid-cols-1 gap-6 md:grid-cols-3">
         <li v-for="(item, index) in items" :key="index"
           class="relative overflow-hidden rounded-lg ease-in-out transition-all duration-200 cursor-pointer hover:scale-105 bg-transparent shadow transform"
           :class="[
