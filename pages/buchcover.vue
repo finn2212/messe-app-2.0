@@ -28,8 +28,7 @@
             <img :src="coverOptions[0]"
               class="w-64 h-96 object-cover rounded-lg shadow-lg bg-transparent mix-blend-multiply" />
             <div v-if="show" class="flex items-center justify-center bg-white p-2 mt-2 rounded-md text-center">
-              <span class="text-black font-bold text-xl">{{ currentNumA }}/{{ coverDocs[currentCoverIndex].data.counterCoverA }} „mal
-                ausgewählt</span>
+              <span class="text-black font-bold text-xl">{{ currentNumA }} „Zähler zurücksetzen</span>
             </div>
           </div>
         </Transition>
@@ -41,8 +40,7 @@
             <img :src="coverOptions[1]"
               class="w-64 h-96 object-cover rounded-lg shadow-lg bg-transparent mix-blend-multiply" />
             <div v-if="show" class="flex items-center justify-center bg-white p-2 mt-2 rounded-md text-center">
-              <span class="text-black font-bold text-xl">{{ currentNumB }}/{{ coverDocs[currentCoverIndex].data.counterCoverB }} „mal
-                ausgewählt</span>
+              <span class="text-black font-bold text-xl">{{ currentNumB }} „Zähler zurücksetzen</span>
             </div>
           </div>
         </Transition>
