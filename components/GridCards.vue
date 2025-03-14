@@ -7,7 +7,7 @@
           :class="[
             animateCards ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-75 translate-y-10',
             isIdle ? 'animate-pulse' : ''
-          ]" :style="{ 'transition-delay': index * 50 + 'ms' }" @click="() => onCardClick(item)">
+          ]" :style="{ 'transition-delay': index * 50 + 'ms' }" @click="() => onCardClick(item, index)">
           <slot name="cardContent" :item="item" :index="index"></slot>
         </li>
       </ul>

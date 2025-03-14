@@ -89,7 +89,7 @@
                         Bearbeiten
                       </button>
                       <button
-                        class="text-green-600 hover:text-green-800 border rounded border-green-600 p-1 flex items-center gap-1 text-sm"
+                        class="text-yellow-600 hover:text-yellow-800 border rounded border-yellow-600 p-1 flex items-center gap-1 text-sm"
                         @click="resetCounter(coverDoc)"
                       >
                         <ArrowUturnDownIcon class="w-3.5 h-3.5" />

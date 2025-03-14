@@ -39,12 +39,20 @@
                     </td>
                     <td class="whitespace-nowrap py-4 pl-3 pr-4 text-sm sm:pr-6">
                       <div class="flex gap-2">
-                        <button class="text-indigo-600 hover:text-indigo-900" @click="editMapping(mapping.id)">
-                          Bearbeiten
-                        </button>
-                        <button class="text-red-600 hover:text-red-800" @click="deleteMapping(mapping.id)">
-                          Löschen
-                        </button>
+                        <button
+                        class="text-indigo-600 hover:text-indigo-900 border rounded border-indigo-600 p-1 flex items-center gap-1 text-sm"
+                        @click="editMapping(mapping.id)"
+                      >
+                        <PencilSquareIcon class="w-3.5 h-3.5" />
+                        Bearbeiten
+                      </button>
+                      <button
+                        class="text-red-600 hover:text-red-800 border rounded border-red-600 p-1 flex items-center gap-1 text-sm"
+                        @click="deleteMapping(mapping.id)"
+                      >
+                        <TrashIcon class="w-3.5 h-3.5" />
+                        Löschen
+                      </button>
                       </div>
                     </td>
                   </tr>
@@ -127,6 +135,7 @@
   import { ref, onMounted } from "vue";
   import { useFirestore } from "#imports";
   import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline";
   
   // Firebase initialisieren
   const db = useFirestore();

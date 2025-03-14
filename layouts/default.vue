@@ -14,8 +14,6 @@
       </keep-alive>
     </main>
 
-    <IdleAlert />
-
     <!-- Footer with centered logo -->
     <footer class="flex items-center justify-center p-4">
       <div class="flex space-x-8">
@@ -35,7 +33,6 @@ import { useRouter, useRoute } from "vue-router";
 import { doc, getDoc } from "firebase/firestore";
 import { useFirestore } from "#imports";
 import { HomeIcon } from "@heroicons/vue/24/outline";
-import IdleAlert from "~/components/IdleAlert.vue";
 
 // Reference Firestore
 const db = useFirestore();
