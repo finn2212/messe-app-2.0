@@ -29,14 +29,11 @@
         :items="quiz.questions[currentQuestion].options"
         :onCardClick="chooseAnswer"
       >
-        <template #cardContent="{ item: option, index }">
+        <template #cardContent="{ item: option }">
           <!-- Outer wrapper for each option (answer) -->
           <div
-            class="w-full md:h-40 lg:h-52 xl:h-60 md:w-56 lg:w-64 xl:w-96 relative flex items-center justify-center transition-all duration-300"
-            :class="{
-              'border-4 border-green-500 animate-pulse': selectedAnswer !== null && selectedAnswer === index && option.correct,
-              'border-4 border-red-500 animate-pulse': selectedAnswer !== null && selectedAnswer === index && !option.correct
-            }"
+            class="h-60 w-96 relative flex items-center justify-center transition-all duration-300"
+            :class="getOptionClasses(option)"
           >
             <!-- If there's an image, show it; else show text -->
             <img
