@@ -6,6 +6,7 @@
           class="relative overflow-hidden rounded-lg ease-in-out transition-all duration-200 cursor-pointer hover:scale-105 bg-transparent shadow transform"
           :class="[
             animateCards ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-75 translate-y-10',
+            isIdle ? 'animate-pulse' : ''
           ]" :style="{ 'transition-delay': index * 50 + 'ms' }" @click="() => onCardClick(item)">
           <slot name="cardContent" :item="item" :index="index"></slot>
         </li>
@@ -40,8 +41,34 @@ const triggerAnimation = () => {
   });
 };
 
+const isIdle = ref(false);
+let idleTimer = null as any;
+
+const startIdleTimer = () => {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+        isIdle.value = true; // Start animation after inactivity
+    }, 20000); // 10 seconds
+};
+
+const resetIdleTimer = () => {
+    isIdle.value = false; // Stop animation
+    startIdleTimer();
+};
+
 onMounted(() => {
+  startIdleTimer();
+  window.addEventListener("mousemove", resetIdleTimer);
+  window.addEventListener("keydown", resetIdleTimer);
+  window.addEventListener("touchstart", resetIdleTimer);
   triggerAnimation();
+});
+
+onUnmounted(() => {
+    clearTimeout(idleTimer);
+    window.removeEventListener("mousemove", resetIdleTimer);
+    window.removeEventListener("keydown", resetIdleTimer);
+    window.removeEventListener("touchstart", resetIdleTimer);
 });
 
 // Watch for dynamically loaded items
@@ -62,5 +89,21 @@ li {
 
 li:hover {
   transform: scale(1.05);
+}
+
+.animate-pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
 }
 </style>
