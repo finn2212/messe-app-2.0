@@ -6,13 +6,13 @@
           <h1 class="text-2xl font-bold text-center">
             Mach mit und sag uns Deine Meinung.
           </h1>
-          <div class="flex items-center justify-between w-full mb-12 md:px-12 lg:px-28 xl:32">
-            <button v-if="slotPages.length > 1" type="button" @click.prevent="prevPage" :disabled="currentPageIndex === 0"
+          <div v-if="slotPages.length > 1" class="flex items-center justify-between w-full mb-12 md:px-12 lg:px-28 xl:32">
+            <button type="button" @click.prevent="prevPage" :disabled="currentPageIndex === 0"
               :class="`border rounded-lg border-slate-300 p-2 ${currentPageIndex === 0 ? 'opacity-50 bg-slate-100' : ''}`">
               <ChevronDoubleLeftIcon class="md:w-5 md:h-5 lg:w-6 lg:h-6" />
             </button>
             <h2>{{ slotPages[currentPageIndex].name }}</h2>
-            <button v-if="slotPages.length > 1" type="button" @click.prevent="nextPage" :disabled="currentPageIndex === slotPages.length - 1"
+            <button type="button" @click.prevent="nextPage" :disabled="currentPageIndex === slotPages.length - 1"
               :class="`border rounded-lg border-slate-300 p-2 ${currentPageIndex === slotPages.length - 1 ? 'opacity-50 bg-slate-100' : ''}`">
               <ChevronDoubleRightIcon class="md:w-5 md:h-5 lg:wbuttonh-6" />
             </button>

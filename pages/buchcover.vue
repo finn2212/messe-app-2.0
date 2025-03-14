@@ -27,8 +27,8 @@
             :class="getCoverClasses(0)">
             <img :src="coverOptions[0]"
               class="w-64 h-96 object-cover rounded-lg shadow-lg bg-transparent mix-blend-multiply" />
-            <div v-if="showA" class="flex items-center justify-center bg-white p-2 mt-2 rounded-md text-center">
-              <span class="text-black font-bold text-xl">{{ coverDocs[currentCoverIndex].data.counterCoverA }} „mal
+            <div v-if="show" class="flex items-center justify-center bg-white p-2 mt-2 rounded-md text-center">
+              <span class="text-black font-bold text-xl">{{ currentNumA }}/{{ coverDocs[currentCoverIndex].data.counterCoverA }} „mal
                 ausgewählt</span>
             </div>
           </div>
@@ -40,24 +40,13 @@
             :class="getCoverClasses(1)">
             <img :src="coverOptions[1]"
               class="w-64 h-96 object-cover rounded-lg shadow-lg bg-transparent mix-blend-multiply" />
-            <div v-if="showB" class="flex items-center justify-center">
-              <span class="text-white font-bold text-xl">{{ coverDocs[currentCoverIndex].data.counterCoverB }} „mal
+            <div v-if="show" class="flex items-center justify-center bg-white p-2 mt-2 rounded-md text-center">
+              <span class="text-black font-bold text-xl">{{ currentNumB }}/{{ coverDocs[currentCoverIndex].data.counterCoverB }} „mal
                 ausgewählt</span>
             </div>
           </div>
         </Transition>
       </div>
-
-      <Transition name="slide" mode="out-in">
-        <div v-if="(showA || showB) && total > 0 && currentNum < total" class="my-4 relative">
-          <p v-if="currentNum % 2 === 0" key="x" class="text-5xl font-bold text-center">
-            {{ currentNum }}
-          </p>
-          <p v-else key="y" class="text-5xl font-bold text-center">
-            {{ currentNum }}
-          </p>
-        </div>
-      </Transition> 
 
       <!-- Feedback + next button -->
       <Transition name="fade" appear>
@@ -104,11 +93,13 @@ const currentCoverIndex = ref(0);
 const selectedCover = ref<number | null>(null);
 const isLoading = ref(false);
 const imagesLoaded = ref(false);
-const showA = ref(false);
-const showB = ref(false);
-const currentNum = ref(0);
-const total = ref(0);
-let interval = null
+const show = ref(false);
+const currentNumA = ref(0);
+const currentNumB = ref(0);
+const totalA = ref(1);
+const totalB = ref(1); 
+let intervalA = null as any;
+let intervalB = null as any;
 
 // Load covers on mount
 onMounted(async () => {
@@ -154,18 +145,32 @@ const coverOptions = computed(() => {
   ];
 });
 
-const startCounter = () => {
-  if (total.value > 0 && (showA.value || showB.value)) {
-    interval = setInterval(() => {
-      currentNum.value++;
-    }, 1000);
-
-    if (currentNum.value >= total.value) {
-      clearInterval(interval);
-      interval = null;
-      total.value = 0;
-      showA.value = false;
-      showB.value = false;
+const startCounter = (index: number) => {
+  if (index === 0) {
+    if (totalA.value > 0 && show.value && currentNumA.value < totalA.value) {
+      if (!intervalA) { // Prevent multiple intervals
+        intervalA = setInterval(() => {
+          if (currentNumA.value < totalA.value) {
+            currentNumA.value++;
+          } else {
+            clearInterval(intervalA);
+            intervalA = null;
+          }
+        }, 300);
+      }
+    }
+  } else if (index === 1) {
+    if (totalB.value > 0 && show.value && currentNumB.value < totalB.value) {
+      if (!intervalB) { // Prevent multiple intervals
+        intervalB = setInterval(() => {
+          if (currentNumB.value < totalB.value) {
+            currentNumB.value++;
+          } else {
+            clearInterval(intervalB);
+            intervalB = null;
+          }
+        }, 300);
+      }
     }
   }
 };
@@ -176,13 +181,9 @@ async function selectCover(index: number) {
     await trackCoverSelection(index);
     await incrementCoverSelection(index);
 
-    if (index === 0) {
-      showA.value = true;
-    } else {
-      showB.value = true;
-    }
-
-    startCounter();
+    show.value = true;
+    startCounter(0);
+    startCounter(1);
   }
 }
 
@@ -199,6 +200,14 @@ async function nextCover() {
   isLoading.value = true;
   selectedCover.value = null;
   currentCoverIndex.value++;
+
+  intervalA = null;
+  intervalB = null;
+  currentNumA.value = 0;
+  currentNumB.value = 0;
+  totalA.value = 0;
+  totalB.value = 0;
+  show.value = false;
 
   if (currentCoverIndex.value >= coverDocs.value.length) {
     navigateToNewsletter();
@@ -239,7 +248,8 @@ async function incrementCoverSelection(selectedIndex: number) {
   const coverId = coverDocs.value[currentCoverIndex.value].id;
   const counterField = `counterCover${selectedIndex === 0 ? "A" : "B"}`;
   coverDocs.value[currentCoverIndex.value].data[counterField]++;
-  total.value = coverDocs.value[currentCoverIndex.value].data.counterCoverA;
+  totalA.value = coverDocs.value[currentCoverIndex.value].data.counterCoverA;
+  totalB.value = coverDocs.value[currentCoverIndex.value].data.counterCoverB;
 
   try {
     await setDoc(doc(db, "coverSelections", coverId), {
@@ -278,30 +288,5 @@ async function incrementCoverSelection(selectedIndex: number) {
 
 .fade-delay-enter-to {
   opacity: 1;
-}
-
-.slide-enter-from {
-  top: 10px;
-  opacity: 0.5;
-}
-
-.slide-enter-active, .slide-delay-enter-active {
-  transition: all .15s;
-}
-
-.slide-enter-to {
-  top: 0px;
-  opacity: 1;
-}
-
-.slide-delay-enter-to {
-  top: 0px;
-  opacity: 1;
-}
-
-.slide-delay-enter-active {
-  top: -30px;
-  opacity: 0;
-  transform: blur(8px);
 }
 </style>
