@@ -3,17 +3,41 @@
     <div v-if="itemsLoaded">
       <Transition name="fade">
         <div>
-          <h1 class="text-2xl font-bold text-center">
+          <h1
+            :class="[
+              'text-2xl',
+              'font-bold',
+              'text-center',
+              { 'mb-5': slotPages.length === 1 },
+            ]"
+          >
             Mach mit und sag uns Deine Meinung.
           </h1>
-          <div v-if="slotPages.length > 1" class="flex items-center justify-between w-full mb-12 md:px-12 lg:px-28 xl:32">
-            <button type="button" @click.prevent="prevPage" :disabled="currentPageIndex === 0"
-              :class="`border rounded-lg border-slate-300 p-2 ${currentPageIndex === 0 ? 'opacity-50 bg-slate-100' : ''}`">
+          <div
+            v-if="slotPages.length > 1"
+            class="flex items-center justify-between w-full mb-12 md:px-12 lg:px-28 xl:32"
+          >
+            <button
+              type="button"
+              @click.prevent="prevPage"
+              :disabled="currentPageIndex === 0"
+              :class="`border rounded-lg border-slate-300 p-2 ${
+                currentPageIndex === 0 ? 'opacity-50 bg-slate-100' : ''
+              }`"
+            >
               <ChevronDoubleLeftIcon class="md:w-5 md:h-5 lg:w-6 lg:h-6" />
             </button>
             <h2>{{ slotPages[currentPageIndex].name }}</h2>
-            <button type="button" @click.prevent="nextPage" :disabled="currentPageIndex === slotPages.length - 1"
-              :class="`border rounded-lg border-slate-300 p-2 ${currentPageIndex === slotPages.length - 1 ? 'opacity-50 bg-slate-100' : ''}`">
+            <button
+              type="button"
+              @click.prevent="nextPage"
+              :disabled="currentPageIndex === slotPages.length - 1"
+              :class="`border rounded-lg border-slate-300 p-2 ${
+                currentPageIndex === slotPages.length - 1
+                  ? 'opacity-50 bg-slate-100'
+                  : ''
+              }`"
+            >
               <ChevronDoubleRightIcon class="md:w-5 md:h-5 lg:wbuttonh-6" />
             </button>
           </div>
@@ -25,7 +49,9 @@
         :onCardClick="(item) => handleClick(item as HomeSlot)"
       >
         <template #cardContent="{ item }">
-          <div class="w-full md:h-40 lg:h-52 xl:h-60 md:w-56 lg:w-64 xl:w-96 relative">
+          <div
+            class="w-full md:h-40 lg:h-52 xl:h-60 md:w-56 lg:w-64 xl:w-96 relative"
+          >
             <div v-if="item.imageUrl">
               <img
                 :src="item.imageUrl"
@@ -63,7 +89,10 @@ import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { navigateTo } from "#app";
 import GridCards from "~/components/GridCards.vue";
 import Spinner from "~/components/Spinner.vue";
-import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from "@heroicons/vue/24/outline";
+import {
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
+} from "@heroicons/vue/24/outline";
 
 const db = useFirestore();
 
@@ -113,7 +142,8 @@ const loadSlots = async () => {
 
   // 2) We have the data
   const data = snap.data().slots as HomeSlot[];
-  slots.value = data.filter(s => s.slotPageId === activeSlotPageId.value) || [];
+  slots.value =
+    data.filter((s) => s.slotPageId === activeSlotPageId.value) || [];
 
   function isString(value: string | undefined): value is string {
     return typeof value === "string";
@@ -128,7 +158,7 @@ const loadSlots = async () => {
 
   // 4) Now that images are preloaded, show <GridCards>
   itemsLoaded.value = true;
-}
+};
 
 // Preload each image with a Promise
 function preloadImages(urls: string[]) {
@@ -180,6 +210,9 @@ function handleClick(slot: HomeSlot) {
       break;
     case "jugendwort":
       navigateTo("/jugendwort");
+      break;
+    case "shop":
+      navigateTo("/shop");
       break;
     default:
       alert("Slot-Typ nicht definiert");
