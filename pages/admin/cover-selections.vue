@@ -28,7 +28,17 @@
                       class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                     Cover B
                   </th>
-                  <!-- Spalte 4: Aktionen -->
+                  <!-- Spalte 4: Cover A Count -->
+                  <th scope="col"
+                      class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                    Cover A Selected
+                  </th>
+                  <!-- Spalte 5: Cover B Count -->
+                  <th scope="col"
+                      class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                    Cover B Selected
+                  </th>
+                  <!-- Spalte 6: Aktionen -->
                   <th scope="col"
                       class="relative py-3.5 pl-3 pr-4 text-left text-sm font-semibold text-gray-900 sm:pr-6">
                     Aktionen
@@ -64,17 +74,32 @@
                     <div v-else class="text-gray-400">–</div>
                   </td>
                   <td class="whitespace-nowrap py-4 pl-3 pr-4 text-sm sm:pr-6">
+                    {{ coverDoc.data.counterCoverA }}
+                  </td>
+                  <td class="whitespace-nowrap py-4 pl-3 pr-4 text-sm sm:pr-6">
+                    {{ coverDoc.data.counterCoverB }}
+                  </td>
+                  <td class="whitespace-nowrap py-4 pl-3 pr-4 text-sm sm:pr-6">
                     <div class="flex gap-2">
                       <button
-                        class="text-indigo-600 hover:text-indigo-900"
+                        class="text-indigo-600 hover:text-indigo-900 border rounded border-indigo-600 p-1 flex items-center gap-1 text-sm"
                         @click="editCoverDoc(coverDoc.id)"
                       >
+                        <PencilSquareIcon class="w-3.5 h-3.5" />
                         Bearbeiten
                       </button>
                       <button
-                        class="text-red-600 hover:text-red-800"
+                        class="text-yellow-600 hover:text-yellow-800 border rounded border-yellow-600 p-1 flex items-center gap-1 text-sm"
+                        @click="resetCounter(coverDoc)"
+                      >
+                        <ArrowUturnDownIcon class="w-3.5 h-3.5" />
+                        Zählen zurücksetzen
+                      </button>
+                      <button
+                        class="text-red-600 hover:text-red-800 border rounded border-red-600 p-1 flex items-center gap-1 text-sm"
                         @click="deleteCoverDoc(coverDoc.id)"
                       >
+                        <TrashIcon class="w-3.5 h-3.5" />
                         Löschen
                       </button>
                     </div>
@@ -186,6 +211,7 @@ import {
 } from 'firebase/firestore'
 import { useFirebaseApp } from '#imports'
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { ArrowUturnDownIcon, PencilSquareIcon, TrashIcon } from '@heroicons/vue/24/outline'
 
 // Layout
 definePageMeta({
@@ -250,6 +276,14 @@ async function deleteCoverDoc(id: string) {
   if (!confirm('Wirklich löschen?')) return
   const docRef = doc(db, 'coverSelections', id)
   await deleteDoc(docRef)
+  await loadCovers()
+}
+
+// Reset
+async function resetCounter(coverDoc: any) {
+  if (!confirm('Wirklich reset?')) return
+  const docRef = doc(db, 'coverSelections', coverDoc.id)
+  await updateDoc(docRef, { ...coverDoc.data, counterCoverA: 0, counterCoverB: 0 })
   await loadCovers()
 }
 

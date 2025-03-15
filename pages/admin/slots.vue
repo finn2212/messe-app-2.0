@@ -4,6 +4,43 @@
       Kacheln konfigurieren
     </h1>
 
+    <!-- ===================== -->
+    <!-- 1) Brand Page Tabs -->
+    <!-- ===================== -->
+    <div class="mt-4 border-b border-gray-300 flex justify-between mb-4">
+      <nav class="flex space-x-4 flex-1">
+        <!-- Iterate over all Brand Page -->
+        <button v-for="slotPage in slotPages" :key="slotPage.id" @click="handlePageChange(slotPage)" :class="[
+          'py-2 px-4 text-sm font-medium flex items-center flex-row gap-1 group',
+          activeSlotPageId === slotPage.id
+            ? 'text-indigo-600 border-b-2 border-indigo-600'
+            : 'text-gray-600 hover:text-gray-900',
+        ]">
+          <span>{{ slotPage.name }}</span>
+          <div class="flex gap-1">
+            <TrashIcon @click="deleteSlotPage(slotPage?.id)" class="-ml-2 group-hover:ml-0 opacity-0 group-hover:opacity-100 transition-all ease duration-300 text-orange-600 w-4 h-4 hover:text-gray-900" />
+            <PencilSquareIcon @click="editSlotPage(slotPage)" class="-ml-2 group-hover:ml-0 opacity-0 group-hover:opacity-100 transition-all ease duration-300 text-indigo-600 w-4 h-4 hover:text-gray-900" />
+          </div>
+        </button>
+      </nav>
+      <button @click="setIsOpen(true)"
+        class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 mb-4">
+      Neue Seite
+      </button>
+      <Modal :isOpen="isOpen" @close="setIsOpen(false)" title="Neue Slot Page" @save="handleSlotPageSave">
+        <div class="py-4">
+           <!-- Internal Title -->
+           <div class="flex flex-col gap-2">
+            <label class="block text-xs font-medium text-gray-500 mr-1">
+              Titel:
+            </label>
+            <input v-model="slotPageFormData.name" placeholder="Interner Titel"
+              class="rounded-md border border-gray-300 px-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+          </div>
+        </div>
+      </Modal>
+    </div>
+
     <!-- Draggable Grid with 3 columns -->
     <Draggable
       v-model="slots"
@@ -12,7 +49,7 @@
       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
     >
       <!-- Exactly one root <div> for each slot item -->
-      <template #item="{ element, index }">
+      <template #item="{ element, index }" :key="index">
         <div
           class="group relative flex flex-col gap-2 cursor-grab border border-gray-200 p-4 hover:bg-gray-50 focus:outline-none rounded-md"
         >
@@ -132,6 +169,8 @@ import {
   getDoc,
   collection,
   getDocs,
+  addDoc,
+  deleteDoc,
 } from "firebase/firestore";
 import { useFirebaseApp, useFirestore } from "#imports";
 import {
@@ -140,15 +179,26 @@ import {
   uploadBytes,
   getDownloadURL,
 } from "firebase/storage";
+import Modal from "~/components/Modal.vue";
+import { PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline";
 definePageMeta({
   layout: "admin"
 });
+
+interface SlotPage {
+  id: string | null;
+  name: string;
+}
 
 // Firestore & Storage
 const db = useFirestore();
 const firebaseApp = useFirebaseApp();
 const storage = getStorage(firebaseApp);
 const slotTypes = ref<Array<{ value: string; label: string }>>([]);
+
+const slotPages = ref<SlotPage[]>([]);
+const slotPagesLoaded = ref(false);
+const activeSlotPageId = ref<string | null>(null);
 
 // Reactive Variable für CoverSelections
 const coverSelections = ref<Array<{ id: string; data: any }>>([]);
@@ -166,24 +216,34 @@ interface SlotItem {
   displayName: string; // e.g. "Lehrerquiz"
   title: string; // internal label
   type:
-    | ""
-    | "quiz"
-    | "buchcover"
-    | "newsletter"
-    | "marken"
-    | "feedback"
-    | "jugendwort"
-    | "shop"; 
+  | ""
+  | "quiz"
+  | "buchcover"
+  | "newsletter"
+  | "marken"
+  | "feedback"
+  | "jugendwort"
+  | "shop";
   dataId?: string; // single doc ID for the quiz
   imageUrl?: string;
   coverIds?: string[];
+  slotPageId?: string | null;
 }
+
+// Formular-Daten
+const slotPageFormData = ref<SlotPage>({
+  name: "",
+  id: null,
+});
 
 // The draggable slots array
 const slots = ref<SlotItem[]>([]);
+const allSlots = ref<SlotItem[]>([]);
 
 // Quizzes from Firestore
 const quizzes = ref<Array<{ id: string; data: any }>>([]);
+
+const isOpen = ref(false);
 
 /**
  * For each item, we must give a stable unique key
@@ -192,15 +252,113 @@ function itemKey(item: SlotItem) {
   return (item.title || "slot") + ":" + (item.dataId || "");
 }
 
+const setIsOpen = (value: boolean) => {
+  isOpen.value = value;
+};
+
 /**
  * onMounted -> Load Firestore data & quiz docs
  */
 onMounted(async () => {
-  await loadSlots();
+  await fetchSlotPages();
+  if (slotPages.value.length > 0) {
+    setActivePageId(slotPages.value[0].id);
+    loadSlots();
+  }
   await loadQuizzes();
   await loadCoverSelections();
   await loadSlotTypes();
 });
+
+const handlePageChange = (page: SlotPage | null) => {
+  setActivePageId(page?.id || null);
+  loadSlots();
+  slotPageFormData.value.id = page ? page.id : null;
+  slotPageFormData.value.name = page ? page.name : "";
+};
+
+const cancelEditPage = () => {
+  slotPageFormData.value.id = null;
+  slotPageFormData.value.name = "";
+};
+
+async function fetchSlotPages() {
+  const pageSnap = await getDocs(collection(db, "slotPages"));
+  slotPages.value = pageSnap.docs.map((docSnap) => {
+    const data = docSnap.data();
+    return {
+      id: docSnap.id,
+      name: data.name,
+    };
+  });
+  slotPagesLoaded.value = true;
+}
+
+function setActivePageId(pageId: string | null) {
+  activeSlotPageId.value = pageId;
+}
+
+const handleSlotPageSave = async () => {  
+  if (!slotPageFormData.value.name) return;
+  const payload = { name: slotPageFormData.value.name };
+  if (slotPageFormData.value.id) {
+    // Update existierendes Dok
+    const docRef = doc(db, "slotPages", slotPageFormData.value.id);
+    await updateDoc(docRef, payload);
+    await fetchSlotPages();
+    cancelEditPage();
+  } else {
+    // create new doc  and get the doc reference
+    const docSlotPageRef = await addDoc(collection(db, "slotPages"), payload);
+
+    // add new page to slotPages
+    slotPages.value.push({ id: docSlotPageRef.id, name: payload.name });
+
+    // set active page id
+    setActivePageId(docSlotPageRef.id);
+
+    // create new slots
+    const newSlots = createFewDefaultSlots(6);
+    const docRef = doc(db, "config", "homeSlots");
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      const loadedSlots = snap.data().slots as SlotItem[];
+      // Ensure imageUrl is defined
+      loadedSlots.forEach((s) => {
+        if (!s.imageUrl) s.imageUrl = "";
+      });
+      await updateDoc(docRef, { slots: [...loadedSlots, ...newSlots] });
+    } else {
+      await setDoc(docRef, { slots: newSlots });
+      allSlots.value = newSlots;
+    }
+    slots.value = newSlots;
+    cancelEditPage();
+  }
+  setIsOpen(false);
+};
+
+const editSlotPage = (page: SlotPage | null) => {
+  slotPageFormData.value.id = page ? page.id : null;
+  slotPageFormData.value.name = page ? page.name : "";
+  setIsOpen(true);
+};
+
+const deleteSlotPage = async (id: string | null) => {
+  if (!confirm("Wirklich löschen?")) return;
+  if (!id) return;
+  const docRef = doc(db, "slotPages", id);
+  await deleteDoc(docRef);
+  fetchSlotPages().then(() => {
+    const newSlots = allSlots.value.filter(s => s.slotPageId !== id);
+    setDoc(doc(db, "config", "homeSlots"), { slots: newSlots });
+    if (activeSlotPageId.value === id) {
+      setActivePageId(slotPages.value[0].id);
+      loadSlots();
+    }
+  });
+  cancelEditPage();
+};
 
 async function loadSlotTypes() {
   const docRef = doc(db, "config", "slotTypes");
@@ -216,10 +374,22 @@ async function loadSlotTypes() {
     slotTypes.value = [];
   }
 }
+
+const createFewDefaultSlots = (count: number) => {
+  const defaultSlots: SlotItem[] = Array.from({ length: count }, (_, i) => ({
+    title: `Slot ${i + 1}`,
+    displayName: "",
+    type: "",
+    dataId: "",
+    imageUrl: "",
+    slotPageId: activeSlotPageId.value
+  }));
+  return defaultSlots;
+};
 /**
  * Load or init the "homeSlots" doc
  */
-async function loadSlots() {
+ async function loadSlots() {
   const docRef = doc(db, "config", "homeSlots");
   const snap = await getDoc(docRef);
 
@@ -229,16 +399,12 @@ async function loadSlots() {
     loadedSlots.forEach((s) => {
       if (!s.imageUrl) s.imageUrl = "";
     });
-    slots.value = loadedSlots;
+    
+    allSlots.value = loadedSlots;
+    slots.value = loadedSlots.filter(s => s.slotPageId === activeSlotPageId.value);
   } else {
-    // create default, e.g. 9 slots
-    const defaultSlots: SlotItem[] = Array.from({ length: 9 }, (_, i) => ({
-      title: `Slot ${i + 1}`,
-      displayName: "",
-      type: "",
-      dataId: "",
-      imageUrl: "",
-    }));
+    // create default, e.g. 6 slots
+    const defaultSlots: SlotItem[] = createFewDefaultSlots(6);
     await setDoc(docRef, { slots: defaultSlots });
     slots.value = defaultSlots;
   }
@@ -258,10 +424,19 @@ function onDragEnd() {
  */
 async function saveSlots() {
   const docRef = doc(db, "config", "homeSlots");
+  const updatedSlots = [
+    ...slots.value.map(s => ({
+      ...s
+    })),
+    ...allSlots.value.filter(s => s.slotPageId !== activeSlotPageId.value).map(s => ({
+      ...s
+    }))
+  ];
+  
   try {
-    await updateDoc(docRef, { slots: slots.value });
+    await updateDoc(docRef, { slots: updatedSlots });
   } catch (err) {
-    await setDoc(docRef, { slots: slots.value });
+    await setDoc(docRef, { slots: updatedSlots });
   }
   alert("Slots gespeichert!");
 }

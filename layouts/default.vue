@@ -21,8 +21,7 @@
           v-if="appSettings?.footerLogoUrl"
           :src="appSettings.footerLogoUrl"
           alt="Footer Logo"
-          class="h-12 object-contain"
-        />
+        class="h-12 object-contain" />
       </div>
     </footer>
   </div>
@@ -40,23 +39,42 @@ const db = useFirestore();
 const router = useRouter();
 const route = useRoute();
 
+const backgroundImageUrl = ref("");
+
 // Reactive state for loaded settings
 const appSettings = ref<any>(null);
 
 const backgroundStyle = computed(() => ({
-  backgroundImage:
-    'url("https://firebasestorage.googleapis.com/v0/b/pons-messe-app2.firebasestorage.app/o/app-settings%2F1738417467083_backgroundImageUrl_background%20(1).jpg?alt=media&token=4215e937-7fc7-4570-8112-a7f774c92550")',
+  backgroundImage: `url("${backgroundImageUrl.value}")`,
   backgroundSize: "cover",
   backgroundPosition: "center",
 }));
 
 // Fetch the "appSettings" doc on mount
 onMounted(async () => {
+  const { $supabase } = useNuxtApp();
+  const {
+    data: { session },
+  } = await $supabase.auth.getSession();
+
+  if (!session) {
+    router.push("/");
+  }
+
+  const cachedImage = localStorage.getItem("backgroundImageUrl");
+  if (cachedImage) {
+    backgroundImageUrl.value = cachedImage;
+  }
   try {
     const docRef = doc(db, "config", "appSettings");
     const snap = await getDoc(docRef);
     if (snap.exists()) {
       appSettings.value = snap.data();
+      const newImageUrl = appSettings.value.backgroundImageUrl;
+      if (newImageUrl !== cachedImage) {
+        backgroundImageUrl.value = newImageUrl;
+        localStorage.setItem("backgroundImageUrl", newImageUrl);
+      }
       console.log("Loaded appSettings:", appSettings.value);
     } else {
       console.log("appSettings doc does not exist, using defaults.");

@@ -89,7 +89,6 @@ import { useRoute, navigateTo } from "#app";
 import { doc, getDoc, addDoc, collection, serverTimestamp} from "firebase/firestore";
 import GridCards from "~/components/GridCards.vue";
 import Spinner from "~/components/Spinner.vue";
-const router = useRouter();
 
 const db = useFirestore();
 const route = useRoute();

@@ -160,7 +160,9 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+
 import {
   Dialog,
   DialogPanel,
@@ -213,6 +215,20 @@ const navigation = [
 ];
 
 const sidebarOpen = ref(false);
+const router = useRouter();
+
+
+onMounted(async () => {
+  const { $supabase } = useNuxtApp();
+  const {
+    data: { session },
+  } = await $supabase.auth.getSession();
+
+  if (!session) {
+    router.push("/");
+  }
+})
+
 </script>
 
 <style scoped>

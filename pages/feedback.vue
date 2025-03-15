@@ -1,17 +1,12 @@
 <template>
   <!-- Spinner while appSettings are loading -->
-  <div
-    v-if="!appSettingsLoaded"
-    class="flex items-center justify-center min-h-screen"
-  >
+  <div v-if="!appSettingsLoaded" class="flex items-center justify-center min-h-screen">
     <Spinner />
   </div>
 
   <!-- Main feedback container -->
   <div v-else class="p-4 flex flex-col items-center justify-center">
-    <h1 class="text-2xl font-bold text-center mb-6">
-      Welche wünsche hast du an uns?
-    </h1>
+    <h1 class="text-2xl font-bold text-center mb-6">Welche wünsche hast du an uns?</h1>
 
     <!-- If user hasn't selected a brand yet, show the brand grid -->
     <TransitionGroup v-if="!selectedBrand" tag="div" class="w-full" name="fade">
@@ -24,7 +19,7 @@
       >
         <template #cardContent="{ item }">
           <div
-            class="h-96 w-64 relative flex items-center justify-center transition-all duration-200 cursor-pointer hover:scale-105"
+            class="w-full md:h-40 lg:h-52 xl:h-60 md:w-56 lg:w-64 xl:w-96 relative flex items-center justify-center transition-all duration-200 cursor-pointer hover:scale-105"
             @click="selectBrand(item)"
           >
             <img
@@ -58,9 +53,7 @@
           <form @submit.prevent="submitFeedback" class="space-y-4">
             <!-- Feedback Textarea -->
             <div>
-              <label class="block text-sm font-medium text-gray-700"
-                >Dein Feedback</label
-              >
+              <label class="block text-sm font-medium text-gray-700">Dein Feedback</label>
               <textarea
                 v-model="feedbackMessage"
                 rows="4"
@@ -169,9 +162,7 @@ async function loadAppSettings() {
 
 async function preloadImages() {
   // Hier laden wir die Bilder aus newsletterOptions
-  const images = brandOptions.value
-    .map((item) => item.logoUrl)
-    .filter((url) => url);
+  const images = brandOptions.value.map((item) => item.logoUrl).filter((url) => url);
   if (images.length === 0) return;
   let loadedCount = 0;
   images.forEach((src) => {
@@ -233,11 +224,7 @@ function handleRemoveKey() {
 // Schließt die Tastatur, wenn außerhalb geklickt wird
 function handleDocumentClick(e: MouseEvent) {
   const keyboardEl = document.querySelector(".keyboard-container");
-  if (
-    keyboardVisible.value &&
-    keyboardEl &&
-    !keyboardEl.contains(e.target as Node)
-  ) {
+  if (keyboardVisible.value && keyboardEl && !keyboardEl.contains(e.target as Node)) {
     keyboardVisible.value = false;
   }
 }
