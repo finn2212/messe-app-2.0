@@ -181,14 +181,12 @@ import {
 } from "firebase/storage";
 import Modal from "~/components/Modal.vue";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline";
+import type { SlotPage, SlotItem } from "~/types";
+
 definePageMeta({
   layout: "admin"
 });
 
-interface SlotPage {
-  id: string | null;
-  name: string;
-}
 
 // Firestore & Storage
 const db = useFirestore();
@@ -212,28 +210,12 @@ async function loadCoverSelections() {
 }
 
 // ---- SlotItem interface ----
-interface SlotItem {
-  displayName: string; // e.g. "Lehrerquiz"
-  title: string; // internal label
-  type:
-  | ""
-  | "quiz"
-  | "buchcover"
-  | "newsletter"
-  | "marken"
-  | "feedback"
-  | "jugendwort"
-  | "shop";
-  dataId?: string; // single doc ID for the quiz
-  imageUrl?: string;
-  coverIds?: string[];
-  slotPageId?: string | null;
-}
+
 
 // Formular-Daten
 const slotPageFormData = ref<SlotPage>({
   name: "",
-  id: null,
+  id: "",
 });
 
 // The draggable slots array
@@ -273,12 +255,12 @@ onMounted(async () => {
 const handlePageChange = (page: SlotPage | null) => {
   setActivePageId(page?.id || null);
   loadSlots();
-  slotPageFormData.value.id = page ? page.id : null;
+  slotPageFormData.value.id = page ? page.id : "";
   slotPageFormData.value.name = page ? page.name : "";
 };
 
 const cancelEditPage = () => {
-  slotPageFormData.value.id = null;
+  slotPageFormData.value.id = "";
   slotPageFormData.value.name = "";
 };
 
@@ -339,7 +321,7 @@ const handleSlotPageSave = async () => {
 };
 
 const editSlotPage = (page: SlotPage | null) => {
-  slotPageFormData.value.id = page ? page.id : null;
+  slotPageFormData.value.id = page ? page.id : "";
   slotPageFormData.value.name = page ? page.name : "";
   setIsOpen(true);
 };

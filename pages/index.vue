@@ -1,113 +1,220 @@
 <template>
-  <div
-    class="flex min-h-full flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8"
-  >
-    <div class="sm:mx-auto sm:w-full sm:max-w-md">
-      <h2
-        class="mt-6 text-center text-2xl font-bold tracking-tight text-gray-900"
-      >
-        In messe App anmelden
-      </h2>
-    </div>
-    <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
-      <div class="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12">
-        <div
-          v-if="errorMessage"
-          class="mb-4 rounded-md bg-red-50 p-4 text-red-700"
-        >
-          {{ errorMessage }}
-        </div>
-        <form class="space-y-6" @submit.prevent="login">
-          <div>
-            <label
-              for="email"
-              class="block text-sm font-medium leading-6 text-gray-900"
-              >E-Mail Adresse</label
-            >
-            <div class="mt-2">
-              <input
-                id="email"
-                v-model="email"
-                name="email"
-                type="email"
-                autocomplete="email"
-                required
-                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-              />
-            </div>
-          </div>
-
-          <div>
-            <div class="flex items-center justify-between">
-              <label
-                for="password"
-                class="block text-sm font-medium leading-6 text-gray-900"
-                >Passwort</label
-              >
-              <div class="text-sm">
-                <label
-                  href="#"
-                  class="font-semibold text-indigo-600 hover:text-indigo-500"
-                  >Forgot password? Contact Admin</label
-                >
-              </div>
-            </div>
-            <div class="mt-2">
-              <input
-                id="password"
-                v-model="password"
-                name="password"
-                type="password"
-                autocomplete="current-password"
-                required
-                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-              />
-            </div>
-          </div>
-
-          <div>
+  <div class="pt-20">
+    <div v-if="itemsLoaded">
+      <Transition name="fade">
+        <div>
+          <h1
+            :class="[
+              'text-2xl',
+              'font-bold',
+              'text-center',
+              { 'mb-5': slotPages.length === 1 },
+            ]"
+          >
+            Mach mit und sag uns Deine Meinung.
+          </h1>
+          <div
+            v-if="slotPages.length > 1"
+            class="flex items-center justify-between w-full mb-12 md:px-12 lg:px-28 xl:32"
+          >
             <button
-              type="submit"
-              class="flex w-full justify-center items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              type="button"
+              @click.prevent="prevPage"
+              :disabled="currentPageIndex === 0"
+              :class="`border rounded-lg border-slate-300 p-2 ${
+                currentPageIndex === 0 ? 'opacity-50 bg-slate-100' : ''
+              }`"
             >
-              <span v-if="!loading">Sign in</span>
+              <ChevronDoubleLeftIcon class="md:w-5 md:h-5 lg:w-6 lg:h-6" />
+            </button>
+            <h2>{{ slotPages[currentPageIndex].name }}</h2>
+            <button
+              type="button"
+              @click.prevent="nextPage"
+              :disabled="currentPageIndex === slotPages.length - 1"
+              :class="`border rounded-lg border-slate-300 p-2 ${
+                currentPageIndex === slotPages.length - 1
+                  ? 'opacity-50 bg-slate-100'
+                  : ''
+              }`"
+            >
+              <ChevronDoubleRightIcon class="md:w-5 md:h-5 lg:wbuttonh-6" />
             </button>
           </div>
-        </form>
-      </div>
+        </div>
+      </Transition>
+      <!-- Only render <GridCards> if we have itemsLoaded = true -->
+      <GridCards
+        :items="slots"
+        :onCardClick="(item) => handleClick(item as HomeSlot)"
+      >
+        <template #cardContent="{ item }">
+          <div
+            class="w-full md:h-40 lg:h-52 xl:h-60 md:w-56 lg:w-64 xl:w-96 relative"
+          >
+            <div v-if="item.imageUrl">
+              <img
+                :src="item.imageUrl"
+                alt="Slot image"
+                class="absolute inset-0 w-full h-full object-cover"
+              />
+              <div
+                class="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white bg-opacity-80 p-2 rounded-md text-center text-black font-semibold"
+              >
+                {{ item.displayName }}
+              </div>
+            </div>
+
+            <div
+              v-else
+              class="absolute inset-0 flex items-center justify-center"
+            >
+              <span class="text-gray-400">No Image</span>
+            </div>
+          </div>
+        </template>
+      </GridCards>
+    </div>
+
+    <!-- Optional: a loading spinner or placeholder until items are ready -->
+    <div v-if="!itemsLoaded" class="flex justify-center min-h-screen">
+      <Spinner></Spinner>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue";
-import { navigateTo } from "nuxt/app";
-import { onMounted, useAsyncData, useNuxtApp } from '#imports'
-import { useRouter } from 'vue-router'
+import { ref, onMounted } from "vue";
+import { collection, doc, getDoc, getDocs } from "firebase/firestore";
+import { navigateTo } from "#app";
+import GridCards from "~/components/GridCards.vue";
+import Spinner from "~/components/Spinner.vue";
+import {
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
+} from "@heroicons/vue/24/outline";
+import type { HomeSlot, SlotPage } from "~/types";
 
-const credentials = reactive({
-  email: "",
-  password: "",
-});
-const errorMessage = ref("");
+const db = useFirestore();
 
-const email = ref("");
-const password = ref("");
-const loading = ref(false);
-const router = useRouter();
 
-const login = async () => {
-  loading.value = true;
-  const { $supabase } = useNuxtApp();
-  const { error } = await $supabase.auth.signInWithPassword({
-    email: email.value,
-    password: password.value,
+const slots = ref<HomeSlot[]>([]);
+const slotPages = ref<SlotPage[]>([]);
+const activeSlotPageId = ref<string | null>(null);
+const currentPageIndex = ref(0);
+const itemsLoaded = ref(false);
+
+onMounted(async () => {
+  const pageSnap = await getDocs(collection(db, "slotPages"));
+  slotPages.value = pageSnap.docs.map((docSnap) => {
+    const data = docSnap.data();
+    return {
+      id: docSnap.id,
+      name: data.name,
+    };
   });
-  loading.value = false;
-  if (error) {
-    alert(error.message);
-  } else {
-    router.push("/home");
+  if (slotPages.value.length > 0) {
+    activeSlotPageId.value = slotPages.value[0].id;
+
+    await loadSlots();
   }
+});
+
+const loadSlots = async () => {
+  // 1) Fetch Firestore data
+  const docRef = doc(db, "config", "homeSlots");
+  const snap = await getDoc(docRef);
+  if (!snap.exists()) {
+    itemsLoaded.value = true;
+    return;
+  }
+
+  // 2) We have the data
+  const data = snap.data().slots as HomeSlot[];
+  slots.value =
+    data.filter((s) => s.slotPageId === activeSlotPageId.value) || [];
+
+  function isString(value: string | undefined): value is string {
+    return typeof value === "string";
+  }
+
+  // ...
+  const imageUrls = slots.value
+    .map((s: HomeSlot) => s.imageUrl)
+    .filter(isString); // now it's guaranteed to be string[]
+
+  await preloadImages(imageUrls);
+
+  // 4) Now that images are preloaded, show <GridCards>
+  itemsLoaded.value = true;
 };
+
+// Preload each image with a Promise
+function preloadImages(urls: string[]) {
+  const promises = urls.map((url) => {
+    return new Promise<void>((resolve, reject) => {
+      const img = new Image();
+      img.src = url;
+      img.onload = () => resolve();
+      img.onerror = () => resolve(); // or reject if you prefer
+    });
+  });
+  return Promise.all(promises);
+}
+
+// Pagination controls
+function nextPage() {
+  if (currentPageIndex.value < slotPages.value.length - 1) {
+    currentPageIndex.value++;
+    activeSlotPageId.value = slotPages.value[currentPageIndex.value].id;
+    loadSlots();
+  }
+}
+
+function prevPage() {
+  if (currentPageIndex.value > 0) {
+    currentPageIndex.value--;
+    activeSlotPageId.value = slotPages.value[currentPageIndex.value].id;
+    loadSlots();
+  }
+}
+
+// Klick-Aktionen
+function handleClick(slot: HomeSlot) {
+  switch (slot.type) {
+    case "quiz":
+      navigateTo(`/quiz/${slot.dataId}`);
+      break;
+    case "marken":
+      navigateTo("/marken");
+      break;
+    case "buchcover":
+      navigateTo("/buchcover");
+      break;
+    case "feedback":
+      navigateTo("/feedback");
+      break;
+    case "newsletter":
+      navigateTo("/newsletter");
+      break;
+    case "jugendwort":
+      navigateTo("/jugendwort");
+      break;
+    case "shop":
+      navigateTo("/shop");
+      break;
+    default:
+      alert("Slot-Typ nicht definiert");
+  }
+}
 </script>
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 1s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

@@ -104,16 +104,11 @@ import { collection, getDocs } from "firebase/firestore";
 import AttributeChart from "~/components/AttributeChart.vue";
 import CoverStatistics from "~/components/CoverStatistics.vue";
 import QuizStatistics from "~/components/QuizStatistics.vue";
+import type { Messe } from "~/types";
 
 // Layout
 definePageMeta({ layout: "admin" });
 
-interface Messe {
-  id: string;
-  name: string;
-  startDate: string; // or Date, if stored that way
-  endDate: string;
-}
 
 const db = useFirestore();
 

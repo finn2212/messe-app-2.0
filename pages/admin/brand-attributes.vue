@@ -210,6 +210,7 @@ import {
   uploadBytes,
   getDownloadURL,
 } from "firebase/storage";
+import type { BrandData } from "~/types";
 
 // Layout
 definePageMeta({ layout: "admin" });
@@ -220,14 +221,6 @@ const firebaseApp = useFirebaseApp();
 const storage = getStorage(firebaseApp);
 
 // Datentypen
-interface BrandAttribute {
-  title: string;
-}
-interface BrandData {
-  brand: string;
-  brandImageUrl?: string;
-  attributes: BrandAttribute[];
-}
 
 // Aus Firestore geladene Marken-Dokumente
 const brandDocs = ref<

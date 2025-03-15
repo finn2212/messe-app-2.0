@@ -52,17 +52,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, nextTick } from "vue";
+import { ref, watch, nextTick } from "vue";
 import { useFirestore } from "#imports";
 import { collection, getDocs } from "firebase/firestore";
 import CsvExportHelper from "~/helpers/csvExportHelper";
-
-interface Messe {
-  id: string;
-  name: string;
-  startDate: string;
-  endDate: string;
-}
+import type { Messe, CoverInfo } from "~/types";
 
 // The parent passes these
 const props = defineProps<{
@@ -72,15 +66,6 @@ const props = defineProps<{
 
 const db = useFirestore();
 const coversLoading = ref(false);
-
-interface CoverInfo {
-  coverId: string;
-  title: string;
-  coverA: string;
-  coverB: string;
-  countA: number;
-  countB: number;
-}
 
 const coverStats = ref<CoverInfo[]>([]);
 

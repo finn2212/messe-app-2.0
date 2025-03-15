@@ -17,10 +17,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, defineProps, nextTick, watch } from "vue";
-
-interface GridItem {
-  [key: string]: any;
-}
+import type { GridItem } from "~/types";
 
 const props = defineProps<{
   items: GridItem[];

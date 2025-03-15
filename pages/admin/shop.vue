@@ -136,26 +136,13 @@
   import { useFirestore } from "#imports";
   import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline";
+import type { BrandMappingData, BrandMappingDoc } from "~/types";
   
   // Firebase initialisieren
   const db = useFirestore();
   
   // Datentypen definieren
-  interface LinkData {
-    provider: "langenscheidt" | "pons" | "klett";
-    url: string;
-    newTab: boolean;
-  }
-  
-  interface BrandMappingData {
-    collectionTitle: string;
-    links: LinkData[];
-  }
-  
-  interface BrandMappingDoc {
-    id: string;
-    data: BrandMappingData;
-  }
+
   
   // Brand Mappings aus Firestore
   const mappings = ref<BrandMappingDoc[]>([]);

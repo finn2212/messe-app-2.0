@@ -99,28 +99,7 @@ import {
   getDocs,
   type DocumentData,
 } from "firebase/firestore";
-
-interface Option {
-  text: string;
-  correct: boolean;
-  optionImageUrl?: string;
-}
-interface Question {
-  question: string;
-  questionImageUrl?: string;
-  options: Option[];
-}
-interface QuizStats {
-  [question: string]: {
-    [answer: string]: number;
-  };
-}
-interface Messe {
-  id: string;
-  name: string;
-  startDate: string;
-  endDate: string;
-}
+import type { Messe, Question, QuizStats } from "~/types";
 
 // ---------------------------------
 // Props from parent

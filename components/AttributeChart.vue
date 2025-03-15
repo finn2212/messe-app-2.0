@@ -36,13 +36,7 @@ import { Chart } from "chart.js/auto";
 import { useFirestore } from "#imports";
 import { collection, getDocs } from "firebase/firestore";
 import CsvExportHelper from "~/helpers/csvExportHelper";
-
-interface Messe {
-  id: string;
-  name: string;
-  startDate: string;
-  endDate: string;
-}
+import type { Messe } from "~/types";
 
 const props = defineProps<{
   messen: Messe[];

@@ -98,6 +98,7 @@ import { ref, onMounted } from 'vue'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { useFirebaseApp, useFirestore } from '#imports'
+import type { AppSettings, ApppSettingsField } from '~/types'
 
 const db = useFirestore()
 const firebaseApp = useFirebaseApp()
@@ -107,16 +108,6 @@ const storage = getStorage(firebaseApp)
 const settingsDocId = "appSettings" // adjust as needed
 
 // We define the shape of our settings with 8 image fields:
-interface AppSettings {
-  backgroundImageUrl: string
-  ponsLogoUrl: string
-  langenscheidtLogoUrl: string
-  klettLogoUrl: string
-  footerLogoUrl: string
-  newsletterLanguageUrl: string
-  newsletterSchoolUrl: string
-  newsletterNoneUrl: string
-}
 
 // Default state
 const appSettings = ref<AppSettings>({
@@ -131,7 +122,7 @@ const appSettings = ref<AppSettings>({
 })
 
 // We'll just define an array to drive our v-for for the table rows
-const fields = [
+const fields: ApppSettingsField[] = [
   { key: "backgroundImageUrl", label: "Hintergrundbild (Home)" },
   { key: "ponsLogoUrl", label: "Pons Logo" },
   { key: "langenscheidtLogoUrl", label: "Langenscheidt Logo (1920 × 2620)" },

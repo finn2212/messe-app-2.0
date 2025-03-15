@@ -24,7 +24,7 @@
       >
         <template #cardContent="{ item, index }">
           <div
-            class="w-full md:h-40 lg:h-52 xl:h-60 md:w-56 lg:w-64 xl:w-96 relative flex items-center justify-center transition-all duration-200 cursor-pointer hover:scale-105"
+            class="w-full md:h-56 lg:h-64 xl:h-96 md:w-40 lg:w-52 xl:w-64 relative flex items-center justify-center transition-all duration-200 cursor-pointer hover:scale-105"
             @click="selectTopic(item, index)"
           >
             <div v-if="item.logoUrl">
